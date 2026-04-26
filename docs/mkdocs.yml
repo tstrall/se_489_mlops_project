@@ -1,0 +1,21 @@
+site_name: SE 489 MLOps Project
+site_description: "Predict SLA violations from event sequences"
+site_author: "Ted Strall"
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.top
+    - search.highlight
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - API Reference: api.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - toc
