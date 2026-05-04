@@ -5,24 +5,47 @@ Predict SLA violations from event sequences
 ## Team Information
 
 - **Project Lead:** Ted Strall (tstrall@depaul.edu)
-- **Team Members:** *To be filled in*
+- **Team Members:** Calvin Au (@depaul.edu)
+Seshagiri Kalyana Venkatesh Adavi (@depaul.edu)
 
 ## Project Overview
 
-SE 489 MLOps Project is a machine learning project that implements Predict SLA violations from event sequences.
+SE 489 MLOps Project is a machine learning project that predicts SLA violations from helpdesk ticket event sequences using a reproducible MLOps pipeline.
+
+This project uses a real-world helpdesk dataset to transform event-based ticket interactions into structured features and train machine learning models to predict whether a ticket will violate its SLA. The focus is on building a reproducible, well-structured pipeline with experiment tracking and clear documentation. The pipeline is designed to be reproducible, with deterministic preprocessing, script-based training, and experiment tracking using MLflow.
 
 **Key Objectives:**
-- [ ] Objective 1
-- [ ] Objective 2
-- [ ] Objective 3
+- [x] Transform event sequences into structured features for modeling
+- [x] Build a reproducible machine learning training pipeline
+- [x] Track experiments and model performance using MLflow
+
+## Dataset
+
+Source: https://data.mendeley.com/datasets/btm76zndnt/2
+
+The dataset contains helpdesk ticket data including:
+- ticket metadata
+- interaction events
+- timestamps for messages and updates
+
+### Target Variable
+
+SLA violation is defined as:
+
+SLA_violation = 1 if resolution_time > SLA_threshold
 
 ## Architecture Diagram
 
-```
-[Placeholder for architecture diagram]
-
-Insert your system architecture diagram here, showing data flow, components,
-and interactions between different parts of the system.
+```text
+Raw Ticket Events
+↓
+Data Preprocessing (group by ticket_id)
+↓
+Feature Engineering (sequence → features)
+↓
+Model Training (scikit-learn)
+↓
+Evaluation + MLflow Tracking
 ```
 
 ## Phase Deliverables
@@ -216,11 +239,11 @@ make docs
 ## Contribution Summary
 
 - [ ] Team members have been assigned
-- [ ] Development environment has been set up
+- [x] Development environment has been set up
 - [ ] Initial data exploration completed
 - [ ] Model baseline established
 - [ ] Evaluation metrics defined
-- [ ] Documentation updated
+- [x] Documentation updated
 - [ ] All tests passing
 - [ ] Code reviewed and merged
 
