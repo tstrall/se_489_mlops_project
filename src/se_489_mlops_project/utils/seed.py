@@ -8,14 +8,14 @@ import random
 import numpy as np
 
 
-def set_seed(seed: int) -> None:
+def set_seed(seed: int = 42) -> None:
     """Seed Python, NumPy, and any framework-specific RNGs available."""
     os.environ["PYTHONHASHSEED"] = str(seed)
     random.seed(seed)
     np.random.seed(seed)
 
     try:
-        import torch
+        import torch  # type: ignore[import-not-found]
 
         torch.manual_seed(seed)
         if torch.cuda.is_available():
@@ -24,7 +24,7 @@ def set_seed(seed: int) -> None:
         pass
 
     try:
-        import tensorflow as tf
+        import tensorflow as tf  # type: ignore[import-not-found]
 
         tf.random.set_seed(seed)
     except ImportError:
