@@ -5,9 +5,10 @@ Predict SLA violations from event sequences
 ## Team Information
 
 - **Project Lead:** Ted Strall (tstrall@depaul.edu)
-- **Team Members:** Calvin Au (@depaul.edu)
-Seshagiri Kalyana Venkatesh Adavi (@depaul.edu)
-Julisa Delfin (@depaul.edu)
+- **Team Members:**
+  - Calvin Au (@depaul.edu)
+  - Seshagiri Kalyana Venkatesh Adavi (@depaul.edu)
+  - Julisa Delfin (@depaul.edu)
 
 ## Project Overview
 
