@@ -1,4 +1,4 @@
-# SE 489 MLOps Project
+# SE 489 MLOps Project - HelpEvents
 
 Predict SLA violations from event sequences
 
@@ -12,7 +12,7 @@ Predict SLA violations from event sequences
 
 ## Project Overview
 
-SE 489 MLOps Project is a machine learning project that predicts SLA violations from helpdesk ticket event sequences using a reproducible MLOps pipeline.
+SE 489 MLOps Project HelpEvents is a machine learning project that predicts SLA violations from helpdesk ticket event sequences using a reproducible MLOps pipeline.
 
 This project uses a real-world helpdesk dataset to transform event-based ticket interactions into structured features and train machine learning models to predict whether a ticket will violate its SLA. The focus is on building a reproducible, well-structured pipeline with experiment tracking and clear documentation. The pipeline is designed to be reproducible, with deterministic preprocessing, script-based training, and experiment tracking using MLflow.
 

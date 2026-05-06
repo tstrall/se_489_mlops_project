@@ -2,16 +2,17 @@
 
 # Python and tools from virtual environment
 PYTHON = .venv/bin/python
-UV = .venv/bin/uv
+UV = UV_CACHE_DIR=.venv/.uv-cache .venv/bin/uv
 PYTEST = .venv/bin/pytest
 RUFF = .venv/bin/ruff
 PRECOMMIT = .venv/bin/pre-commit
+MKDOCS = .venv/bin/mkdocs
 
 # Note: 'uv' is a faster alternative to pip. Install with: pip install uv
 # Then replace 'pip install' with 'uv pip install' in the commands below.
 
 install:
-	$(PYTHON) -m pip install -U pip
+	$(UV) pip install -U pip
 	$(UV) pip install -r requirements.txt
 	$(UV) pip install -e .
 
@@ -55,4 +56,4 @@ docker_run:
 	docker run --rm se_489_mlops_project
 
 docs:
-	mkdocs serve
+	$(MKDOCS) build -f docs/mkdocs.yml
