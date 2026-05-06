@@ -14,12 +14,12 @@ class BaseModel(ABC):
         self.config: dict[str, Any] = config or {}
 
     @abstractmethod
-    def fit(self, X: Any, y: Any) -> "BaseModel":
+    def fit(self, x: Any, y: Any) -> BaseModel:
         """Fit the model to training data."""
 
     @abstractmethod
-    def predict(self, X: Any) -> Any:
-        """Return predictions for ``X``."""
+    def predict(self, x: Any) -> Any:
+        """Return predictions for ``x``."""
 
     @abstractmethod
     def save(self, path: Path) -> None:
@@ -27,5 +27,5 @@ class BaseModel(ABC):
 
     @classmethod
     @abstractmethod
-    def load(cls, path: Path) -> "BaseModel":
+    def load(cls, path: Path) -> BaseModel:
         """Load a previously saved model from disk."""

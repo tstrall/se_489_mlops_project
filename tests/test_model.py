@@ -1,9 +1,11 @@
-"""Tests for the default Model scaffold."""
+"""Tests for the Model implementation."""
 
 from __future__ import annotations
 
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
 import pytest
 
 from se_489_mlops_project.models.base import BaseModel
@@ -21,13 +23,46 @@ class TestModel:
         cfg = {"lr": 0.01, "epochs": 5}
         assert Model(cfg).config == cfg
 
-    def test_fit_not_implemented(self) -> None:
-        with pytest.raises(NotImplementedError):
-            Model().fit(None, None)
+    def test_fit_returns_model(self) -> None:
+        """Test that fit returns the model instance for chaining."""
+        x = pd.DataFrame(
+            {
+                "issue_contr_count": [1, 2, 3],
+                "issue_comments_count": [5, 6, 7],
+                "wf_total_time": [1000, 2000, 3000],
+                "processing_steps": [2, 3, 4],
+                "num_events": [10, 20, 30],
+                "duration_seconds": [500, 1500, 2500],
+                "issue_type_Ticket": [1, 0, 1],
+                "issue_priority_High": [0, 1, 0],
+            }
+        )
+        y = np.array([0, 1, 0])
 
-    def test_predict_not_implemented(self) -> None:
-        with pytest.raises(NotImplementedError):
-            Model().predict(None)
+        model = Model()
+        result = model.fit(x, y)
+        assert result is model
+
+    def test_predict_works(self) -> None:
+        """Test that predict returns predictions."""
+        x = pd.DataFrame(
+            {
+                "issue_contr_count": [1, 2, 3],
+                "issue_comments_count": [5, 6, 7],
+                "wf_total_time": [1000, 2000, 3000],
+                "processing_steps": [2, 3, 4],
+                "num_events": [10, 20, 30],
+                "duration_seconds": [500, 1500, 2500],
+                "issue_type_Ticket": [1, 0, 1],
+                "issue_priority_High": [0, 1, 0],
+            }
+        )
+        y = np.array([0, 1, 0])
+
+        model = Model().fit(x, y)
+        preds = model.predict(x)
+        assert len(preds) == len(x)
+        assert set(preds).issubset({0, 1})
 
     def test_save_load_roundtrip(self, tmp_path: Path) -> None:
         path = tmp_path / "model.joblib"

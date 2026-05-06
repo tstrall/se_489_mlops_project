@@ -5,21 +5,70 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+import pandas as pd
+from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
+from sklearn.model_selection import train_test_split
+
 from se_489_mlops_project.config import DEFAULT_CONFIG, MODELS_DIR, PROCESSED_DATA_DIR
 from se_489_mlops_project.logging_config import get_logger, setup_logging
+from se_489_mlops_project.models.model import Model
 from se_489_mlops_project.utils.seed import set_seed
 
 logger = get_logger(__name__)
 
 
-def train(data_path: Path, model_dir: Path, epochs: int, batch_size: int, lr: float) -> None:
+def train(
+    data_path: Path, model_dir: Path, epochs: int, batch_size: int, lr: float
+) -> None:
     """Train the model and persist the fitted artifact to ``model_dir``.
 
-    Fill in the training loop / estimator fit for your problem and
-    call ``model.save(model_dir / "model.joblib")`` at the end.
+    Loads processed data, trains a Random Forest classifier, evaluates on test set,
+    and saves the model artifact.
     """
-    logger.info("Training with data=%s epochs=%d bs=%d lr=%g", data_path, epochs, batch_size, lr)
-    model_dir.mkdir(parents=True, exist_ok=True)
+    logger.info("Training with data=%s", data_path)
+
+    # Load processed data
+    data_file = data_path / "processed_data.csv"
+    df = pd.read_csv(data_file)
+    logger.info("Loaded %d records from %s", len(df), data_file)
+
+    # Separate features and target
+    x = df.drop(columns=["id", "sla_violation"])
+    y = df["sla_violation"]
+
+    # Handle categorical columns
+    categorical_cols = x.select_dtypes(include=["object"]).columns
+    x = pd.get_dummies(x, columns=categorical_cols, drop_first=True)
+
+    logger.info("Features: %d, Target: sla_violation (n=%d)", x.shape[1], len(y))
+    logger.info("Target distribution: %s", y.value_counts().to_dict())
+
+    # Train-test split (80-20)
+    x_train, x_test, y_train, y_test = train_test_split(
+        x, y, test_size=0.2, random_state=42, stratify=y
+    )
+    logger.info("Train set: %d, Test set: %d", len(x_train), len(x_test))
+
+    # Create and train model
+    model = Model()
+    logger.info("Training Random Forest classifier...")
+    model.fit(x_train, y_train)
+
+    # Evaluate on test set
+    y_pred = model.predict(x_test)
+    y_pred_proba = model.predict_proba(x_test)
+
+    # Log metrics
+    roc_auc = roc_auc_score(y_test, y_pred_proba[:, 1])
+    cm = confusion_matrix(y_test, y_pred)
+    logger.info("ROC-AUC Score: %.4f", roc_auc)
+    logger.info("Confusion Matrix:\n%s", cm)
+    logger.info("Classification Report:\n%s", classification_report(y_test, y_pred))
+
+    # Save model
+    model_path = model_dir / "model.joblib"
+    model.save(model_path)
+    logger.info("Model saved to %s", model_path)
 
 
 def main() -> None:
@@ -37,7 +86,13 @@ def main() -> None:
     setup_logging()
     set_seed(args.seed)
 
-    train(args.data_path, args.model_dir, args.epochs, args.batch_size, args.learning_rate)
+    train(
+        args.data_path,
+        args.model_dir,
+        args.epochs,
+        args.batch_size,
+        args.learning_rate,
+    )
     logger.info("Training complete")
 
 
