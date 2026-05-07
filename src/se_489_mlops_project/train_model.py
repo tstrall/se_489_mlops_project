@@ -28,7 +28,12 @@ logger = get_logger(__name__)
 
 
 def train(
-    data_path: Path, model_dir: Path, epochs: int, batch_size: int, lr: float, seed: int = 42
+    data_path: Path,
+    model_dir: Path,
+    epochs: int,
+    batch_size: int,
+    lr: float,
+    seed: int = 42,
 ) -> None:
     """Train the model and persist the fitted artifact to ``model_dir``.
 
@@ -49,7 +54,9 @@ def train(
     # would give the model direct access to the answer at training time.
     # These columns are retained in processed_data.csv for auditability but
     # must not be used as model inputs.
-    leaky_cols = ["id", "sla_violation", "wf_total_time", "total_time_days", "log_total_time"]
+    leaky_cols = [
+        "id", "sla_violation", "wf_total_time", "total_time_days", "log_total_time",
+    ]
     x = df.drop(columns=[c for c in leaky_cols if c in df.columns])
     y = df["sla_violation"]
 
