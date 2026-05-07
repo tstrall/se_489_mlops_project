@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 
 from se_489_mlops_project.config import PROCESSED_DATA_DIR, RAW_DATA_DIR
+from se_489_mlops_project.features.build_features import build_features
 from se_489_mlops_project.logging_config import get_logger, setup_logging
 
 logger = get_logger(__name__)
@@ -75,11 +76,21 @@ def process_data(input_dir: Path, output_dir: Path) -> None:
         "duration_seconds",
     ]
 
-    # Add workflow features (wf_* columns)
-    wf_cols = [col for col in issues.columns if col.startswith("wf_")]
+    # Add remaining workflow features (wf_* columns not already listed above)
+    wf_cols = [
+        col for col in issues.columns
+        if col.startswith("wf_") and col not in feature_cols
+    ]
     feature_cols.extend(wf_cols)
 
+    # Deduplicate while preserving order
+    seen: set[str] = set()
+    feature_cols = [c for c in feature_cols if not (c in seen or seen.add(c))]  # type: ignore[func-returns-value]
+
     processed_data = processed[feature_cols + ["sla_violation"]].copy()
+
+    # Apply feature engineering
+    processed_data = build_features(processed_data)
 
     # Save processed data
     output_dir.mkdir(parents=True, exist_ok=True)

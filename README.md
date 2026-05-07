@@ -6,15 +6,31 @@ Predict SLA violations from event sequences
 
 - **Project Lead:** Ted Strall (tstrall@depaul.edu)
 - **Team Members:**
-  - Calvin Au (@depaul.edu)
-  - Seshagiri Kalyana Venkatesh Adavi (@depaul.edu)
-  - Julisa Delfin (@depaul.edu)
+  - Calvin Au (cau@depaul.edu)
+  - Seshagiri Kalyana Venkatesh Adavi (sadavi@depaul.edu)
+  - Julisa Delfin (jdelfin@depaul.edu)
 
 ## Project Overview
 
-SE 489 MLOps Project HelpEvents is a machine learning project that predicts SLA violations from helpdesk ticket event sequences using a reproducible MLOps pipeline.
+### Problem Statement
 
-This project uses a real-world helpdesk dataset to transform event-based ticket interactions into structured features and train machine learning models to predict whether a ticket will violate its SLA. The focus is on building a reproducible, well-structured pipeline with experiment tracking and clear documentation. The pipeline is designed to be reproducible, with deterministic preprocessing, script-based training, and experiment tracking using MLflow.
+IT helpdesk teams operate under Service Level Agreements (SLAs) that define the maximum time allowed to resolve a support ticket. When tickets breach these thresholds, the consequences range from contractual penalties to degraded customer trust. Currently, support teams have no early-warning system — they only discover an SLA violation after it has already occurred. The goal of this project is to predict, as early as possible in a ticket's lifecycle, whether that ticket is likely to violate its SLA, so support managers can intervene proactively.
+
+### What We Are Building
+
+HelpEvents is an end-to-end MLOps pipeline that trains a binary classification model on real-world helpdesk data. Given a set of features about a support ticket — its priority, type, number of contributing agents, comment activity, and the history of workflow state changes — the model predicts whether the ticket will exceed the 7-day SLA threshold.
+
+The raw dataset comes from a public Mendeley repository and contains over 150,000 helpdesk tickets spanning 2016 to 2023, including a change-history table that records every workflow event associated with each ticket. We transform these event sequences into structured, per-ticket features using a deterministic preprocessing pipeline. Feature engineering steps include computing ticket event density (events per active day), contributor-to-comment ratios, log-scaled resolution time, and binary priority flags. All transformations are implemented as reusable Python functions so the same logic runs identically at training time and inference time.
+
+### Model and Framework
+
+The classifier is a `RandomForestClassifier` wrapped in a scikit-learn `Pipeline` with a `StandardScaler` preprocessing stage. Random Forest was chosen because it handles mixed feature types naturally, is robust to outliers, and produces well-calibrated probability estimates that are critical for ranking tickets by violation risk. We evaluate with accuracy, precision, recall, F1, and ROC-AUC.
+
+The key third-party framework integrated into this project is **MLflow**. Every training run logs its hyperparameters, evaluation metrics, and the serialized model artifact to a local MLflow tracking server. This makes experiments fully reproducible and comparable — a core MLOps requirement.
+
+### Expected Impact
+
+A deployed version of this model would allow a support team to flag high-risk tickets in real time and prioritize them for escalation, directly reducing the rate of SLA violations. Success is measured primarily by ROC-AUC (ability to rank tickets by risk) and recall (minimizing missed violations).
 
 **Key Objectives:**
 - [x] Transform event sequences into structured features for modeling
