@@ -78,7 +78,8 @@ def process_data(input_dir: Path, output_dir: Path) -> None:
 
     # Add remaining workflow features (wf_* columns not already listed above)
     wf_cols = [
-        col for col in issues.columns
+        col
+        for col in issues.columns
         if col.startswith("wf_") and col not in feature_cols
     ]
     feature_cols.extend(wf_cols)

@@ -55,7 +55,11 @@ def train(
     # These columns are retained in processed_data.csv for auditability but
     # must not be used as model inputs.
     leaky_cols = [
-        "id", "sla_violation", "wf_total_time", "total_time_days", "log_total_time",
+        "id",
+        "sla_violation",
+        "wf_total_time",
+        "total_time_days",
+        "log_total_time",
     ]
     x = df.drop(columns=[c for c in leaky_cols if c in df.columns])
     y = df["sla_violation"]
@@ -127,9 +131,7 @@ def train(
         logger.info("Recall:        %.4f", recall)
         logger.info("F1 Score:      %.4f", f1)
         logger.info("Confusion Matrix:\n%s", cm)
-        logger.info(
-            "Classification Report:\n%s", classification_report(y_test, y_pred)
-        )
+        logger.info("Classification Report:\n%s", classification_report(y_test, y_pred))
 
         # Save model artifact and log to MLflow
         model_path = model_dir / "model.joblib"
