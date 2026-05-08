@@ -258,7 +258,7 @@ make docs
 
 - [ ] Team members have been assigned
 - [x] Development environment has been set up
-- [ ] Initial data exploration completed
+- [x] Initial data exploration completed
 - [ ] Model baseline established
 - [ ] Evaluation metrics defined
 - [x] Documentation updated
