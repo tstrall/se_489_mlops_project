@@ -30,14 +30,19 @@ class Model(BaseModel):
         """
         super().__init__(config)
 
-        # Numerical features to scale
+        # Numerical features to scale — includes engineered features from
+        # build_features.py.  wf_total_time, total_time_days, and log_total_time
+        # are intentionally excluded: they directly compute the target variable
+        # (sla_violation = wf_total_time > threshold) and would cause leakage.
         numeric_features = [
             "issue_contr_count",
             "issue_comments_count",
-            "wf_total_time",
             "processing_steps",
             "num_events",
             "duration_seconds",
+            "events_per_day",
+            "comments_per_contributor",
+            "log_num_events",
         ]
 
         # Preprocessing: scale numeric features
@@ -76,8 +81,12 @@ class Model(BaseModel):
         return self.pipeline.predict(x)
 
     def predict_proba(self, x: Any) -> Any:
-        """Generate prediction probabilities."""
-        return self.pipeline.named_steps["classifier"].predict_proba(x)
+        """Generate prediction probabilities.
+
+        Routes input through the full pipeline (preprocessor + classifier) so
+        the same scaling/transformation applied at training time is applied here.
+        """
+        return self.pipeline.predict_proba(x)
 
     def save(self, path: Path) -> None:
         """Save the model to disk."""
