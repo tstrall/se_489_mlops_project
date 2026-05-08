@@ -8,7 +8,7 @@ Predict SLA violations from event sequences
 - **Team Members:**
   - Calvin Au (cau@depaul.edu)
   - Seshagiri Kalyana Venkatesh Adavi (sadavi@depaul.edu)
-  - Julisa Delfin (jdelfin@depaul.edu)
+  - Julisa Delfin (jdelfing@depaul.edu)
 
 ## Project Overview
 
