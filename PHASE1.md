@@ -42,7 +42,7 @@ Phase 1 establishes the foundation for the MLOps project focused on predicting S
 
 - [x] **Data Cleaning Scripts**: Preprocessing implemented in scripts
 - [x] **Normalization**: StandardScaler applied to numeric features inside the sklearn Pipeline
-- [x] **Feature Engineering**: `build_features.py` derives `events_per_day`, `comments_per_contributor`, `is_high_priority`, `log_num_events`, and `total_time_days` from raw columns
+- [x] **Feature Engineering**: `build_features.py` derives `events_per_day`, `comments_per_contributor`, `is_high_priority`, and `log_num_events` from workflow and event-history data
 - [ ] **Data Augmentation**: Not applicable for tabular classification
 - [x] **Data Documentation**: Dataset source, schema, and preprocessing steps documented in README and `data/raw/README.md`
 - [x] **Data Splits**: 80/20 stratified train/test split (random_state=42)
@@ -109,16 +109,16 @@ Class distribution — training set: 70.9% violations (1), 29.1% non-violations 
 
 ### Findings
 
-The baseline Random Forest model achieves strong performance on the test set (ROC-AUC 0.9984, F1 0.9894) using only ticket metadata and event-history features. The most informative signals appear to be `num_events`, `processing_steps`, `duration_seconds`, and `events_per_day` — features that capture how actively a ticket is being worked at the time of prediction. The dataset is imbalanced (71% violations, 29% non-violations), which is handled naturally by stratified splitting.
+The baseline Random Forest model achieves strong performance on the test set (ROC-AUC 0.9984, F1 0.9894) using only ticket metadata and event-history features. The most informative signals appear to be `num_events`, `processing_steps`, and `events_per_day` — features that capture how actively a ticket is being worked at the time of prediction. The dataset is imbalanced (71% violations, 29% non-violations), which is handled naturally by stratified splitting.
 
 The EDA notebook (`notebooks/01_eda.ipynb`) reveals:
-- `wf_total_time` is heavily right-skewed with a long tail of multi-month tickets.
+- Ticket activity and workflow-complexity features are heavily right-skewed, with a subset of tickets showing unusually large event histories and processing workloads.
 - Ticket priority has a notable effect on violation rate — certain priority tiers show significantly higher breach rates.
 - The change history table averages around 4 events per ticket, with high-event tickets correlating strongly with SLA breaches.
 
 ### Challenges
 
-**Data leakage:** The most significant issue encountered during Phase 1. The original feature set included `wf_total_time`, which is the direct input to the SLA violation definition. This produced perfect scores on the first run and had to be removed. This is a realistic MLOps concern — in production, `wf_total_time` would not be available at prediction time (you do not know the total resolution time until a ticket is closed). The corrected feature set uses only information available before closure.
+**Data leakage:** The most significant issue encountered during Phase 1. The original feature set included `wf_total_time`, which is the direct input to the SLA violation definition. This produced perfect scores on the first run and had to be removed. This is a realistic MLOps concern — in production, `wf_total_time` would not be available at prediction time (you do not know the total resolution time until a ticket is closed). The corrected feature set uses only information available before closure. Additional safeguards were added to ensure target-derived columns cannot accidentally enter the training feature set during preprocessing.
 
 **Duplicate wf_* columns:** The `make_dataset.py` script built `feature_cols` by listing base features and then extending with all `wf_*` columns via wildcard. Because `wf_total_time` appeared in both lists, pandas selected it as a two-column DataFrame, causing a crash during feature engineering. Fixed by filtering the wildcard to exclude columns already explicitly listed.
 
