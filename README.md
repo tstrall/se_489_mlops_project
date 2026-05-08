@@ -14,11 +14,11 @@ Predict SLA violations from event sequences
 
 ### Problem Statement
 
-IT helpdesk teams operate under Service Level Agreements (SLAs) that define the maximum time allowed to resolve a support ticket. When tickets breach these thresholds, the consequences range from contractual penalties to degraded customer trust. Currently, support teams have no early-warning system — they only discover an SLA violation after it has already occurred. The goal of this project is to predict, as early as possible in a ticket's lifecycle, whether that ticket is likely to violate its SLA, so support managers can intervene proactively.
+IT helpdesk teams operate under Service Level Agreements (SLAs) that define the maximum time allowed to resolve a support ticket. When tickets breach these thresholds, the consequences range from contractual penalties to degraded customer trust. Currently, support teams have no early-warning system - they only discover an SLA violation after it has already occurred. The goal of this project is to predict, as early as possible in a ticket's lifecycle, whether that ticket is likely to violate its SLA, so support managers can intervene proactively.
 
 ### What We Are Building
 
-HelpEvents is an end-to-end MLOps pipeline that trains a binary classification model on real-world helpdesk data. Given a set of features about a support ticket — its priority, type, number of contributing agents, comment activity, and the history of workflow state changes — the model predicts whether the ticket will exceed the 7-day SLA threshold.
+HelpEvents is an end-to-end MLOps pipeline that trains a binary classification model on real-world helpdesk data. Given a set of features about a support ticket - its priority, type, number of contributing agents, comment activity, and the history of workflow state changes - the model predicts whether the ticket will exceed the 7-day SLA threshold.
 
 The raw dataset comes from a public Mendeley repository and contains over 150,000 helpdesk tickets spanning 2016 to 2023, including a change-history table that records every workflow event associated with each ticket. We transform these event sequences into structured, per-ticket features using a deterministic preprocessing pipeline. Feature engineering steps include computing ticket event density (events per active day), contributor-to-comment ratios, log-scaled resolution time, and binary priority flags. All transformations are implemented as reusable Python functions so the same logic runs identically at training time and inference time.
 
@@ -26,7 +26,7 @@ The raw dataset comes from a public Mendeley repository and contains over 150,00
 
 The classifier is a `RandomForestClassifier` wrapped in a scikit-learn `Pipeline` with a `StandardScaler` preprocessing stage. Random Forest was chosen because it handles mixed feature types naturally, is robust to outliers, and produces well-calibrated probability estimates that are critical for ranking tickets by violation risk. We evaluate with accuracy, precision, recall, F1, and ROC-AUC.
 
-The key third-party framework integrated into this project is **MLflow**. Every training run logs its hyperparameters, evaluation metrics, and the serialized model artifact to a local MLflow tracking server. This makes experiments fully reproducible and comparable — a core MLOps requirement.
+The key third-party framework integrated into this project is **MLflow**. Every training run logs its hyperparameters, evaluation metrics, and the serialized model artifact to a local MLflow tracking server. This makes experiments fully reproducible and comparable - a core MLOps requirement.
 
 ### Expected Impact
 
@@ -148,7 +148,7 @@ make help
 
 ## Project Structure
 
-This template uses the modern **`src/` layout** — the importable package lives in `src/se_489_mlops_project/`, decoupled from the repository root. That forces `pip install -e .` before imports work, which catches packaging bugs early.
+This template uses the modern **`src/` layout** - the importable package lives in `src/se_489_mlops_project/`, decoupled from the repository root. That forces `pip install -e .` before imports work, which catches packaging bugs early.
 
 ```
 se_489_mlops_project/                  # Repository root
@@ -223,7 +223,7 @@ se_489_mlops_project/                  # Repository root
 | Catches packaging bugs early | ✅ | ❌ |
 | Adopted by | attrs, httpx, pydantic, flask, sqlalchemy | Older data-science templates |
 
-Data and model artifacts are accessed via the constants in `se_489_mlops_project.config` (`PROJECT_ROOT`, `DATA_DIR`, `MODELS_DIR`, …) rather than relative paths — code is independent of where you invoke it from.
+Data and model artifacts are accessed via the constants in `se_489_mlops_project.config` (`PROJECT_ROOT`, `DATA_DIR`, `MODELS_DIR`, …) rather than relative paths - code is independent of where you invoke it from.
 
 ## Common Commands
 
@@ -256,21 +256,29 @@ make docs
 
 ## Contribution Summary
 
-- [ ] Team members have been assigned
-- [x] Development environment has been set up
-- [x] Initial data exploration completed
-- [ ] Model baseline established
-- [ ] Evaluation metrics defined
-- [x] Documentation updated
-- [ ] All tests passing
-- [ ] Code reviewed and merged
+- [x] Team members assigned - Ted Strall (lead), Calvin Au, Seshagiri Kalyana Venkatesh Adavi, Julisa Delfin
+- [x] Development environment set up - `requirements.txt`, `requirements_dev.txt`, `pyproject.toml`, pre-commit hooks
+- [x] Project structure created - Cookiecutter MLOps `src/` layout with `data/`, `models/`, `tests/`, `docs/`, `notebooks/`
+- [x] Dataset selected and added - real-world helpdesk ticket data from Mendeley (~66k tickets)
+- [x] Data processing pipeline implemented - `make_dataset.py` cleans raw CSVs and builds the SLA violation target
+- [x] Feature engineering implemented - `build_features.py` derives `events_per_day`, `comments_per_contributor`, `is_high_priority`, `log_num_events`, and more
+- [x] Model training pipeline implemented - `train_model.py` with Random Forest, 80/20 stratified split, and full evaluation
+- [x] MLflow experiment tracking integrated - hyperparameters, metrics, and model artifact logged on every run
+- [x] Data leakage identified and fixed - `wf_total_time` excluded from training features
+- [x] Baseline model results documented - ROC-AUC 0.9984, F1 0.9894
+- [x] Evaluation metrics defined - accuracy, precision, recall, F1, ROC-AUC
+- [x] EDA notebook created - `notebooks/01_eda.ipynb` covering distributions, class balance, correlations
+- [x] All tests passing - 7 unit tests covering model fit, predict, save/load, and type safety
+- [x] CI pipeline passing - GitHub Actions running ruff lint, ruff format, mypy, and pytest on every push
+- [x] Code reviewed and merged - `phase1-fixes` branch reviewed and merged via PR
+- [x] Documentation updated - README (450+ word description), PHASE1.md (checklist + baseline results + findings report)
 
 ## References
 
 - [Project Documentation](docs/index.md)
-- [Phase 1 — Project Design & Model Development](PHASE1.md)
-- [Phase 2 — Containerization & Monitoring](PHASE2.md)
-- [Phase 3 — CI/CD & Deployment](PHASE3.md)
+- [Phase 1 - Project Design & Model Development](PHASE1.md)
+- [Phase 2 - Containerization & Monitoring](PHASE2.md)
+- [Phase 3 - CI/CD & Deployment](PHASE3.md)
 
 ## License
 
