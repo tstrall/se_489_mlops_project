@@ -151,3 +151,8 @@ config/local_settings.py
 predictions.csv
 mlruns/
 models/*.joblib
+
+mlflow.db
+mlruns/
+__pycache__/
+.ipynb_checkpoints/
