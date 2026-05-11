@@ -1,105 +1,181 @@
 # PHASE 2: Enhancing ML Operations with Containerization & Monitoring
 
 ## Overview
-Phase 2 focuses on scaling and operationalizing SE 489 MLOps Project by implementing containerization, advanced monitoring, profiling, experiment tracking, and comprehensive logging. This phase ensures your model can be reliably deployed, monitored in production, and continuously improved through systematic experimentation.
+Phase 2 focuses on operationalizing HelpEvents by adding containerization, configuration management, experiment tracking, logging, profiling, and monitoring. This phase ensures the SLA violation prediction pipeline can run consistently across environments and can be inspected, debugged, and reproduced by other team members.
 
 ---
 
 ## 1. Containerization
 
-- [ ] **Dockerfile Creation**: Build Dockerfile for model training and inference
-- [ ] **Base Image Selection**: Choose appropriate base image (python:3.x, nvidia/cuda, etc.)
-- [ ] **Environment Variables**: Define and document required environment variables
-- [ ] **Build Instructions**: Document how to build Docker image with examples
-- [ ] **Run Instructions**: Document how to run container with proper volume/network config
-- [ ] **Container Testing**: Test container locally to ensure consistency with host environment
-- [ ] **Docker Compose (Optional)**: Create docker-compose.yml for multi-service setups
-- [ ] **Environment Consistency**: Verify that containerized training produces identical results to local training
+- [x] **Dockerfile Creation**: Dockerfile created for containerized model training
+- [x] **Base Image Selection**: Uses required `python:3.11-slim-bookworm` base image
+- [x] **Environment Variables**: `PYTHONUNBUFFERED=1` configured for reliable container logging
+- [x] **Build Instructions**: Docker build command documented in README
+- [x] **Run Instructions**: Docker run command documented with mounted `models/` and `data/processed/` volumes
+- [x] **Container Testing**: Container tested locally and successfully runs training end-to-end
+- [ ] **Docker Compose (Optional)**: Not required for current single-service training workflow
+- [x] **Environment Consistency**: Containerized training produces comparable results to local training
+
+### Verified Docker Commands
+
+```bash
+docker build -f dockerfiles/Dockerfile -t helpevents .
+```
+
+```bash
+docker run --rm \
+  -v "$PWD/models:/app/models" \
+  -v "$PWD/data/processed:/app/data/processed" \
+  helpevents
+```
+
+### Verified Container Metrics
+
+- ROC-AUC: 0.9984
+- Accuracy: 0.9837
+- Precision: 0.9952
+- Recall: 0.9818
+- F1 Score: 0.9884
 
 ---
 
 ## 2. Monitoring & Debugging
 
-- [ ] **Debugging Tools**: Set up pdb/ipdb for interactive debugging
-- [ ] **Debugging Documentation**: Document how to debug in containerized environment
-- [ ] **Debug Scenario 1**: Create example scenario and solution document for [specific problem]
-- [ ] **Debug Scenario 2**: Create example scenario and solution document for [specific problem]
-- [ ] **Logging for Debugging**: Implement detailed logging at critical points in code
-- [ ] **Model Assertion Checks**: Add assertions to catch data/model anomalies early
-- [ ] **Training Validation**: Implement sanity checks (NaN detection, shape validation, etc.)
+- [ ] **Debugging Tools**: pdb/ipdb documentation still pending
+- [ ] **Debugging Documentation**: Container debugging notes still pending
+- [x] **Debug Scenario 1**: Resolved feature mismatch where training expected `events_per_day` but stale processed data did not contain it
+- [ ] **Debug Scenario 2**: Pending
+- [x] **Logging for Debugging**: Training pipeline logs data path, row count, feature count, target distribution, train/test split, and model metrics
+- [x] **Model Assertion Checks**: Training code validates expected target and feature columns
+- [x] **Training Validation**: Training logs target distribution and dataset dimensions before fitting model
+
+### Debug Scenario 1: Feature Contract Mismatch
+
+During Docker testing, training failed because the model expected the `events_per_day` feature, but the mounted processed dataset was stale and did not include that column. The fix was to regenerate processed data with the current feature engineering pipeline using:
+
+```bash
+make data
+```
+
+Then rerun the containerized training command.
+
+This exposed a real MLOps issue: training code and preprocessing output must maintain a consistent feature contract.
 
 ---
 
 ## 3. Profiling & Optimization
 
-- [ ] **CPU Profiling**: Use cProfile to profile training and inference
-- [ ] **Memory Profiling**: Profile memory usage with memory_profiler or similar
-- [ ] **GPU Profiling (if applicable)**: Use PyTorch Profiler or similar for GPU workloads
-- [ ] **Profiling Results**: Document baseline profiling results and bottlenecks identified
-- [ ] **Optimization 1**: Implement and measure optimization (e.g., vectorization, caching)
-- [ ] **Optimization 2**: Implement and measure additional optimization
-- [ ] **Performance Benchmarks**: Document before/after performance metrics
-- [ ] **Optimization Documentation**: Explain each optimization and its impact
+- [ ] **CPU Profiling**: cProfile script/output pending
+- [ ] **Memory Profiling**: Optional; pending
+- [ ] **GPU Profiling (if applicable)**: Not applicable; project uses scikit-learn on CPU
+- [ ] **Profiling Results**: Pending
+- [ ] **Optimization 1**: Pending
+- [ ] **Optimization 2**: Pending
+- [ ] **Performance Benchmarks**: Pending
+- [ ] **Optimization Documentation**: Pending
+
+### Planned Profiling Command
+
+```bash
+python -m cProfile -o reports/profile_train.out -m se_489_mlops_project.train_model
+```
 
 ---
 
 ## 4. Experiment Management & Tracking
 
-- [ ] **MLflow Setup**: Initialize MLflow tracking server and client configuration
-  - OR **Weights & Biases Setup**: Initialize W&B project and team workspace
-- [ ] **Metric Logging**: Log training/validation metrics for each experiment
-- [ ] **Parameter Logging**: Log all hyperparameters and configuration values
-- [ ] **Model Artifact Logging**: Save model checkpoints and artifacts to tracking system
-- [ ] **Experiment Comparison**: Create comparison of at least 3 different experiments
-- [ ] **Visualization**: Generate performance comparison charts/plots
-- [ ] **Best Model Selection**: Document criteria and process for selecting best model from experiments
-- [ ] **Experiment Documentation**: Create table summarizing all experiments with results
+- [x] **MLflow Setup**: MLflow integrated into training pipeline
+- [x] **Metric Logging**: Accuracy, precision, recall, F1, and ROC-AUC logged for each run
+- [x] **Parameter Logging**: Model parameters and configuration values logged
+- [x] **Model Artifact Logging**: Trained scikit-learn model logged to MLflow and saved to `models/model.joblib`
+- [ ] **Experiment Comparison**: At least 3 config-driven experiment runs pending
+- [ ] **Visualization**: MLflow screenshots / comparison charts pending
+- [x] **Best Model Selection**: ROC-AUC and recall selected as primary model-selection criteria
+- [ ] **Experiment Documentation**: Experiment summary table pending
+
+### Current Baseline Result
+
+- Model: Random Forest
+- ROC-AUC: 0.9984
+- Accuracy: 0.9837
+- Precision: 0.9952
+- Recall: 0.9818
+- F1 Score: 0.9884
 
 ---
 
 ## 5. Application & Experiment Logging
 
-- [ ] **Logger Setup**: Configure Python logger with appropriate handlers and formatters
-  - OR **Rich Library Setup**: Use rich for enhanced console output and logging
-- [ ] **Log Levels**: Implement and use DEBUG, INFO, WARNING, ERROR appropriately
-- [ ] **Log Messages**: Add informative log messages at key points in code
-- [ ] **Training Log Example**: Document and include sample training log output
-- [ ] **Inference Log Example**: Document and include sample inference log output
-- [ ] **Error Logging**: Implement comprehensive error logging with context
-- [ ] **Performance Logging**: Log timing information for performance analysis
-- [ ] **Log Rotation**: Configure log rotation to prevent disk space issues
+- [x] **Logger Setup**: Python logging configured for training pipeline
+- [ ] **Rich Library Setup**: Pending / optional
+- [x] **Log Levels**: INFO and WARNING messages used during training and MLflow execution
+- [x] **Log Messages**: Informative logs added at key points in the pipeline
+- [x] **Training Log Example**: Docker run output demonstrates training logs
+- [ ] **Inference Log Example**: Pending
+- [x] **Error Logging**: Training failures expose useful stack traces and context
+- [ ] **Performance Logging**: Pending
+- [ ] **Log Rotation**: Pending / optional
+
+### Example Training Log Output
+
+```text
+INFO | Training with data=/app/data/processed
+INFO | Loaded 66691 records from /app/data/processed/processed_data.csv
+INFO | Features: 50, Target: sla_violation
+INFO | Training Random Forest classifier...
+INFO | ROC-AUC Score: 0.9984
+INFO | Model saved to /app/models/model.joblib
+```
 
 ---
 
 ## 6. Configuration Management
 
-- [ ] **Hydra Setup**: Install and configure Hydra for config management
-- [ ] **Config Files**: Create YAML config files for train/eval/inference configurations
-- [ ] **Config Structure**: Organize configs with appropriate hierarchy (base, model, data, etc.)
-- [ ] **Config Example 1**: Create and document sample training config
-- [ ] **Config Example 2**: Create and document alternative config (different hyperparameters)
-- [ ] **Config Validation**: Implement config validation and schema checking
-- [ ] **Override Documentation**: Document how to override config values from command line
-- [ ] **Config Version Control**: Version all configs alongside code
+- [x] **Hydra Setup**: Hydra integrated into training pipeline
+- [x] **Config Files**: `configs/config.yaml` created for training configuration
+- [x] **Config Structure**: Config includes data, model, and training parameters
+- [x] **Config Example 1**: Default Random Forest training config
+- [x] **Config Example 2**: CLI override example for changing hyperparameters
+- [ ] **Config Validation**: Formal schema validation pending
+- [x] **Override Documentation**: CLI override command documented
+- [x] **Config Version Control**: Config file committed with source code
+
+### Example Hydra Override
+
+```bash
+python -m se_489_mlops_project.train_model model.n_estimators=200
+```
 
 ---
 
 ## 7. Documentation & Repository Updates
 
-- [ ] **README Update**: Update README to include:
+- [ ] **README Update**:
   - [ ] Containerization section with Docker usage
   - [ ] Debugging and profiling guide
-  - [ ] Experiment tracking setup instructions
+  - [x] Experiment tracking setup instructions
   - [ ] Configuration management guide
   - [ ] Logging usage examples
-- [ ] **Architecture Documentation**: Document system architecture with diagrams
-- [ ] **Setup Guide**: Update setup guide to include all Phase 2 tools
-- [ ] **Examples**: Add examples of running with different configurations
-- [ ] **Tool Integration**: Document how all tools work together
-- [ ] **Troubleshooting**: Add troubleshooting section for common issues
-- [ ] **Performance Guide**: Document how to profile and optimize
-- [ ] **Version Compatibility**: Document version requirements for all tools
+- [x] **Architecture Documentation**: README includes architecture overview
+- [x] **Setup Guide**: README includes setup and execution commands
+- [x] **Examples**: Docker and Hydra examples added/planned
+- [x] **Tool Integration**: MLflow, Docker, and Hydra integration documented in progress
+- [ ] **Troubleshooting**: Pending
+- [ ] **Performance Guide**: Pending
+- [x] **Version Compatibility**: Docker base image and Python version documented
 
 ---
 
-> **Checklist:** Use this as a guide for documenting your Phase 2 deliverables.
+## Remaining Phase 2 Work
+
+Before Phase 2 submission, the main remaining tasks are:
+
+1. Update README with Docker, Hydra, logging, and profiling sections.
+2. Add cProfile output under `reports/`.
+3. Run at least three MLflow experiments with different Hydra overrides.
+4. Add screenshots for Docker run, MLflow runs, and GitHub Actions.
+5. Complete profiling and experiment comparison documentation.
+
+---
+
+> **Checklist:** Use this as a guide for documenting Phase 2 deliverables.

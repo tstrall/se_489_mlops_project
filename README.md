@@ -52,6 +52,8 @@ SLA violation is defined as:
 
 SLA_violation = 1 if resolution_time > SLA_threshold
 
+> Note: `wf_total_time` is used only to derive the SLA target variable and for exploratory analysis. It is intentionally excluded from the final training feature set to prevent target leakage.
+
 ## Architecture Diagram
 
 ```text
@@ -127,6 +129,60 @@ make predict
 make help
 ```
 
+## Phase 2: Containerized Training
+
+The project includes a Docker-based training environment for reproducible machine learning workflows and operational consistency across environments.
+
+### Build Docker Image
+
+```bash
+docker build -f dockerfiles/Dockerfile -t helpevents .
+```
+
+### Run Containerized Training
+
+```bash
+docker run --rm \
+  -v "$PWD/models:/app/models" \
+  -v "$PWD/data/processed:/app/data/processed" \
+  helpevents
+```
+
+This mounts local processed datasets and trained model artifacts into the container so outputs persist outside the runtime environment.
+
+### Hydra Configuration
+
+The training pipeline uses Hydra configuration management for reproducible experimentation and parameter overrides.
+
+Example override:
+
+```bash
+python -m se_489_mlops_project.train_model model.n_estimators=200
+```
+
+Configuration files are stored in:
+
+```text
+configs/config.yaml
+```
+
+### Verified Docker Training Results
+
+The containerized training pipeline successfully produced:
+
+- ROC-AUC: 0.9984
+- Accuracy: 0.9837
+- Precision: 0.9952
+- Recall: 0.9818
+- F1 Score: 0.9884
+
+The trained model artifact is saved to:
+
+```text
+models/model.joblib
+```
+
+
 ## Technology Stack
 
 ### Core Dependencies
@@ -145,6 +201,13 @@ make help
 - **ruff** >= 0.6.0 - Linting and formatting
 - **mypy** >= 1.11 - Static type checking
 - **pre-commit** >= 3.8 - Git hooks framework
+
+### Containerization
+- **Docker** - Reproducible containerized training environment
+
+### Configuration Management
+- **Hydra** - Config-driven experimentation and parameter overrides
+
 
 ## Project Structure
 
@@ -272,6 +335,8 @@ make docs
 - [x] CI pipeline passing - GitHub Actions running ruff lint, ruff format, mypy, and pytest on every push
 - [x] Code reviewed and merged - `phase1-fixes` branch reviewed and merged via PR
 - [x] Documentation updated - README (450+ word description), PHASE1.md (checklist + baseline results + findings report)
+- [x] Docker containerization implemented - reproducible training environment using `python:3.11-slim-bookworm`
+- [x] Hydra configuration integrated - config-driven training with runtime parameter overrides
 
 ## References
 

@@ -27,6 +27,4 @@ COPY . .
 # Install the package
 RUN pip install --no-cache-dir -e .
 
-EXPOSE 8000
-
 ENTRYPOINT ["python", "-m", "se_489_mlops_project.train_model"]
