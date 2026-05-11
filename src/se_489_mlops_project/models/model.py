@@ -53,6 +53,8 @@ class Model(BaseModel):
             remainder="passthrough",
         )
 
+        model_config = config or {}
+
         # Pipeline: preprocess -> classify
         self.pipeline = Pipeline(
             [
@@ -60,11 +62,13 @@ class Model(BaseModel):
                 (
                     "classifier",
                     RandomForestClassifier(
-                        n_estimators=100,
-                        max_depth=10,
-                        min_samples_split=10,
-                        min_samples_leaf=5,
-                        random_state=42,
+                        n_estimators=int(model_config.get("n_estimators", 100)),
+                        max_depth=int(model_config.get("max_depth", 10)),
+                        min_samples_split=int(
+                            model_config.get("min_samples_split", 10)
+                        ),
+                        min_samples_leaf=int(model_config.get("min_samples_leaf", 5)),
+                        random_state=int(model_config.get("random_state", 42)),
                         n_jobs=-1,
                     ),
                 ),
