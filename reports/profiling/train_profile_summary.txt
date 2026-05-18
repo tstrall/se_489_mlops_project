@@ -1,0 +1,33 @@
+Sun May 10 19:37:40 2026    reports/profiling/train_profile.prof
+
+         9635139 function calls (9408426 primitive calls) in 8.002 seconds
+
+   Ordered by: cumulative time
+   List reduced from 19675 to 25 due to restriction <25>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      441    0.008    0.000   13.054    0.030 __init__.py:1(<module>)
+   5025/1    0.132    0.000    5.467    5.467 {built-in method builtins.exec}
+      2/1    0.000    0.000    5.357    5.357 <string>:1(<module>)
+      2/1    0.000    0.000    5.357    5.357 <frozen runpy>:201(run_module)
+      2/1    0.000    0.000    5.357    5.357 <frozen runpy>:65(_run_code)
+      2/1    0.000    0.000    5.264    5.264 train_model.py:1(<module>)
+      2/1    0.000    0.000    5.215    5.215 main.py:80(decorated_main)
+        1    0.001    0.001    5.214    5.214 utils.py:306(_run_hydra)
+        1    0.000    0.000    4.363    4.363 utils.py:430(_run_app)
+        3    0.000    0.000    4.115    1.372 utils.py:218(run_and_report)
+        1    0.000    0.000    4.114    4.114 utils.py:458(<lambda>)
+        1    0.000    0.000    4.092    4.092 hydra.py:98(run)
+        1    0.000    0.000    4.092    4.092 utils.py:99(run_job)
+        1    0.001    0.001    4.092    4.092 train_model.py:138(main)
+        1    0.000    0.000    4.091    4.091 train_model.py:31(train)
+  3250/91    0.006    0.000    3.481    0.038 <frozen importlib._bootstrap_external>:989(exec_module)
+  3720/96    0.017    0.000    3.480    0.036 <frozen importlib._bootstrap>:1349(_find_and_load)
+  3635/59    0.012    0.000    3.478    0.059 <frozen importlib._bootstrap>:1304(_find_and_load_unlocked)
+ 8134/147    0.050    0.000    3.476    0.024 <frozen importlib._bootstrap>:480(_call_with_frames_removed)
+  3461/30    0.009    0.000    3.472    0.116 <frozen importlib._bootstrap>:911(_load_unlocked)
+ 1269/152    0.002    0.000    2.953    0.019 {built-in method builtins.__import__}
+      306    0.002    0.000    2.910    0.010 parallel.py:1670(_get_outputs)
+        1    0.000    0.000    2.798    2.798 __init__.py:379(log_model)
+        1    0.000    0.000    2.798    2.798 model.py:1058(log)
+        1    0.000    0.000    2.710    2.710 __init__.py:175(save_model)

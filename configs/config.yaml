@@ -1,0 +1,20 @@
+experiment:
+  name: sla-violation-prediction
+
+data:
+  processed_dir: data/processed
+  processed_file: processed_data.csv
+  target: sla_violation
+
+model:
+  type: random_forest
+  n_estimators: 100
+  random_state: 42
+
+training:
+  test_size: 0.2
+  random_state: 42
+
+hydra:
+  job:
+    chdir: false
