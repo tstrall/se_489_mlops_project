@@ -88,10 +88,10 @@ python -m cProfile -o reports/profile_train.out -m se_489_mlops_project.train_mo
 - [x] **Metric Logging**: Accuracy, precision, recall, F1, and ROC-AUC logged for each run
 - [x] **Parameter Logging**: Model parameters and configuration values logged
 - [x] **Model Artifact Logging**: Trained scikit-learn model logged to MLflow and saved to `models/model.joblib`
-- [ ] **Experiment Comparison**: At least 3 config-driven experiment runs pending
-- [ ] **Visualization**: MLflow screenshots / comparison charts pending
-- [x] **Best Model Selection**: ROC-AUC and recall selected as primary model-selection criteria
-- [ ] **Experiment Documentation**: Experiment summary table pending
+- [x] **Experiment Comparison**: Four Hydra-driven MLflow runs completed and compared
+- [x] **Visualization**: MLflow screenshots added under `reports/screenshots/`
+- [x] **Best Model Selection**: Accuracy, F1 score, ROC-AUC, and recall reviewed for model selection
+- [x] **Experiment Documentation**: Experiment summary table added below
 
 ### Current Baseline Result
 
@@ -101,6 +101,29 @@ python -m cProfile -o reports/profile_train.out -m se_489_mlops_project.train_mo
 - Precision: 0.9952
 - Recall: 0.9818
 - F1 Score: 0.9884
+
+### MLflow Experiment Comparison
+
+Four MLflow runs were completed using Hydra configuration overrides. Each run logged model parameters, evaluation metrics, and trained model artifacts.
+
+| Run | Configuration Change | ROC-AUC | Accuracy | Precision | Recall | F1 Score |
+|---|---|---:|---:|---:|---:|---:|
+| Baseline | `n_estimators=100`, `test_size=0.2` | 0.9984 | 0.9837 | 0.9952 | 0.9818 | 0.9884 |
+| Smaller Random Forest | `n_estimators=50`, `test_size=0.2` | 0.9983 | 0.9844 | 0.9949 | 0.9831 | 0.9889 |
+| Larger Random Forest | `n_estimators=200`, `test_size=0.2` | 0.9984 | 0.9841 | 0.9959 | 0.9816 | 0.9887 |
+| Larger Test Split | `n_estimators=100`, `test_size=0.3` | 0.9984 | 0.9849 | 0.9949 | 0.9837 | 0.9893 |
+
+The larger test split run produced the strongest overall accuracy and F1 score while maintaining a very high ROC-AUC. The smaller random forest also performed well and may be preferable when faster training is more important. MLflow made it easier to compare metrics, confirm parameters, and verify that each run saved trained model artifacts.
+
+#### MLflow Evidence Screenshots
+
+![Baseline MLflow Run](reports/screenshots/mlflow-baseline-run.png)
+
+![50 Estimators MLflow Run](reports/screenshots/mlflow-50-estimators-run.png)
+
+![200 Estimators MLflow Run](reports/screenshots/mlflow-200-estimators-run.png)
+
+![Larger Test Split MLflow Run](reports/screenshots/mlflow-test-size-030-run.png)
 
 ---
 
@@ -171,10 +194,9 @@ python -m se_489_mlops_project.train_model model.n_estimators=200
 Before Phase 2 submission, the main remaining tasks are:
 
 1. Update README with Docker, Hydra, logging, and profiling sections.
-2. Add cProfile output under `reports/`.
-3. Run at least three MLflow experiments with different Hydra overrides.
-4. Add screenshots for Docker run, MLflow runs, and GitHub Actions.
-5. Complete profiling and experiment comparison documentation.
+2. Complete remaining monitoring, profiling, logging, and debugging documentation.
+3. Add any remaining Docker or GitHub Actions screenshots if required.
+4. Complete final README and PHASE2.md cleanup before submission.
 
 ---
 
