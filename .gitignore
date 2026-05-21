@@ -163,3 +163,7 @@ src/se_489_mlops_project/outputs/
 # Application logs (written by RotatingFileHandler)
 logs/*.log
 !logs/.gitkeep
+
+# Monitoring output CSVs
+reports/monitoring/*.csv
+!reports/monitoring/.gitkeep
