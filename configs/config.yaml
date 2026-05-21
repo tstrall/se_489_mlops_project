@@ -1,3 +1,7 @@
+defaults:
+  - _self_
+  - experiment: null   # override with +experiment=larger_forest or +experiment=fast
+
 experiment:
   name: sla-violation-prediction
 
@@ -9,6 +13,9 @@ data:
 model:
   type: random_forest
   n_estimators: 100
+  max_depth: 10
+  min_samples_split: 10
+  min_samples_leaf: 5
   random_state: 42
 
 training:

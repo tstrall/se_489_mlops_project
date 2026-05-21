@@ -1,0 +1,24 @@
+# @package _global_
+#
+# Larger Random Forest experiment.
+#
+# Usage:
+#   python -m se_489_mlops_project.train_model +experiment=larger_forest
+#
+# Overrides the default config with a deeper, denser forest for potentially
+# higher accuracy at the cost of longer training time.
+
+experiment:
+  name: sla-violation-larger-forest
+
+model:
+  type: random_forest
+  n_estimators: 200
+  max_depth: 15
+  min_samples_split: 5
+  min_samples_leaf: 2
+  random_state: 42
+
+training:
+  test_size: 0.2
+  random_state: 42

@@ -1,0 +1,24 @@
+# @package _global_
+#
+# Fast / lightweight experiment config for quick iteration and CI checks.
+#
+# Usage:
+#   python -m se_489_mlops_project.train_model +experiment=fast
+#
+# Trades some accuracy for much faster training — useful when you want a
+# quick sanity check without waiting for a full 100-tree forest.
+
+experiment:
+  name: sla-violation-fast
+
+model:
+  type: random_forest
+  n_estimators: 25
+  max_depth: 8
+  min_samples_split: 20
+  min_samples_leaf: 10
+  random_state: 42
+
+training:
+  test_size: 0.2
+  random_state: 42

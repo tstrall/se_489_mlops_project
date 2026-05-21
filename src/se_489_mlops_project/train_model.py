@@ -37,6 +37,9 @@ def train(
     test_size: float,
     random_state: int,
     n_estimators: int,
+    max_depth: int = 10,
+    min_samples_split: int = 10,
+    min_samples_leaf: int = 5,
 ) -> None:
     """Train the model and persist the fitted artifact to ``model_dir``."""
 
@@ -79,6 +82,9 @@ def train(
             {
                 "model_type": "RandomForestClassifier",
                 "n_estimators": n_estimators,
+                "max_depth": max_depth,
+                "min_samples_split": min_samples_split,
+                "min_samples_leaf": min_samples_leaf,
                 "test_size": test_size,
                 "random_state": random_state,
                 "n_features": x.shape[1],
@@ -91,6 +97,9 @@ def train(
         model = Model(
             config={
                 "n_estimators": n_estimators,
+                "max_depth": max_depth,
+                "min_samples_split": min_samples_split,
+                "min_samples_leaf": min_samples_leaf,
                 "random_state": random_state,
             }
         )
@@ -154,6 +163,9 @@ def main(cfg: DictConfig) -> None:
         test_size=cfg.training.test_size,
         random_state=cfg.training.random_state,
         n_estimators=cfg.model.n_estimators,
+        max_depth=cfg.model.max_depth,
+        min_samples_split=cfg.model.min_samples_split,
+        min_samples_leaf=cfg.model.min_samples_leaf,
     )
 
     logger.info("Training complete")
