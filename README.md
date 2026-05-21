@@ -154,17 +154,72 @@ This mounts local processed datasets and trained model artifacts into the contai
 
 The training pipeline uses Hydra configuration management for reproducible experimentation and parameter overrides.
 
-Example override:
-
-```bash
-python -m se_489_mlops_project.train_model model.n_estimators=200
-```
-
-Configuration files are stored in:
+Configuration files are stored under `configs/`:
 
 ```text
-configs/config.yaml
+configs/
+├── config.yaml                    # default training config
+└── experiment/
+    ├── larger_forest.yaml         # 200 trees, deeper forest
+    └── fast.yaml                  # 25 trees for quick iteration
 ```
+
+Run with a named experiment preset:
+
+```bash
+python -m se_489_mlops_project.train_model +experiment=larger_forest
+python -m se_489_mlops_project.train_model +experiment=fast
+```
+
+Ad-hoc parameter overrides:
+
+```bash
+python -m se_489_mlops_project.train_model model.n_estimators=200 training.test_size=0.3
+```
+
+### Logging
+
+Logging uses `rich` for colored terminal output — log levels are color-coded and timestamps are included. Logs also write to `logs/app.log` with rotation at 5 MB (3 backups kept). If a run crashes, the traceback is formatted by `rich` with local variable values shown.
+
+To use the logger in a new module:
+
+```python
+from se_489_mlops_project.logging_config import get_logger
+
+logger = get_logger(__name__)
+logger.info("Loaded %d records", len(df))
+```
+
+### Profiling
+
+Profile the full training pipeline with cProfile:
+
+```bash
+python scripts/profile_training.py
+```
+
+Outputs:
+
+```text
+reports/profiling/train_profile.prof          # binary — load with pstats
+reports/profiling/train_profile_summary.txt   # human-readable top-25 hotspots
+```
+
+Explore the binary profile interactively:
+
+```bash
+python -m pstats reports/profiling/train_profile.prof
+```
+
+### Resource Monitoring
+
+Track CPU and RAM during a training run:
+
+```bash
+python scripts/monitor_training.py
+```
+
+Samples every 0.5 seconds and writes to `reports/monitoring/training_monitor.csv`. Prints peak RAM, peak CPU, and total run time when it finishes.
 
 ### Verified Docker Training Results
 
@@ -192,8 +247,13 @@ models/model.joblib
 - **matplotlib** >= 3.9.0 - Visualization
 - **tqdm** >= 4.66.0 - Progress bars
 - **pyyaml** >= 6.0 - Configuration files
+
 ### Experiment Tracking
 - **mlflow** >= 2.16.0 - MLflow experiment tracking
+
+### Logging & Monitoring
+- **rich** >= 13.0.0 - Colored console logging and formatted tracebacks
+- **psutil** >= 5.9.0 - CPU and memory monitoring during training
 
 ### Development Tools
 - **pytest** >= 8.0 - Testing framework
@@ -337,6 +397,11 @@ make docs
 - [x] Documentation updated - README (450+ word description), PHASE1.md (checklist + baseline results + findings report)
 - [x] Docker containerization implemented - reproducible training environment using `python:3.11-slim-bookworm`
 - [x] Hydra configuration integrated - config-driven training with runtime parameter overrides
+- [x] Experiment config groups added - `configs/experiment/larger_forest.yaml` and `configs/experiment/fast.yaml`
+- [x] Rich logging integrated - colored console output, rotating file handler, formatted tracebacks
+- [x] cProfile training profiler added - `scripts/profile_training.py` with binary and text summary outputs
+- [x] psutil resource monitor added - `scripts/monitor_training.py` tracks CPU/RAM during training runs
+- [x] Debugging documented - pdb/ipdb usage guide and two real debug scenarios in PHASE2.md
 
 ## References
 

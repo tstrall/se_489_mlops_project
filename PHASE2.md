@@ -1,7 +1,7 @@
 # PHASE 2: Enhancing ML Operations with Containerization & Monitoring
 
 ## Overview
-Phase 2 focuses on operationalizing HelpEvents by adding containerization, configuration management, experiment tracking, logging, profiling, and monitoring. This phase ensures the SLA violation prediction pipeline can run consistently across environments and can be inspected, debugged, and reproduced by other team members.
+Phase 2 adds the operational layer on top of the Phase 1 model — Docker for consistent environments, Hydra for config management, MLflow for experiment tracking, Rich logging, cProfile for profiling, and psutil-based monitoring. The goal was to make the pipeline something you can hand off to a teammate and have it actually work on their machine.
 
 ---
 
@@ -13,7 +13,6 @@ Phase 2 focuses on operationalizing HelpEvents by adding containerization, confi
 - [x] **Build Instructions**: Docker build command documented in README
 - [x] **Run Instructions**: Docker run command documented with mounted `models/` and `data/processed/` volumes
 - [x] **Container Testing**: Container tested locally and successfully runs training end-to-end
-- [ ] **Docker Compose (Optional)**: Not required for current single-service training workflow
 - [x] **Environment Consistency**: Containerized training produces comparable results to local training
 
 ### Verified Docker Commands
@@ -41,13 +40,53 @@ docker run --rm \
 
 ## 2. Monitoring & Debugging
 
-- [ ] **Debugging Tools**: pdb/ipdb documentation still pending
-- [ ] **Debugging Documentation**: Container debugging notes still pending
+- [x] **Debugging Tools**: pdb/ipdb available for interactive debugging
+- [x] **Debugging Documentation**: pdb usage documented below
 - [x] **Debug Scenario 1**: Resolved feature mismatch where training expected `events_per_day` but stale processed data did not contain it
-- [ ] **Debug Scenario 2**: Pending
+- [x] **Debug Scenario 2**: Resolved data leakage causing artificially perfect training scores
 - [x] **Logging for Debugging**: Training pipeline logs data path, row count, feature count, target distribution, train/test split, and model metrics
 - [x] **Model Assertion Checks**: Training code validates expected target and feature columns
 - [x] **Training Validation**: Training logs target distribution and dataset dimensions before fitting model
+- [x] **Resource Monitoring**: `scripts/monitor_training.py` polls CPU and RAM via psutil and writes `reports/monitoring/training_monitor.csv`
+
+### Debugging with pdb / ipdb
+
+Python's built-in `pdb` debugger (or the enhanced `ipdb` drop-in) can be inserted anywhere in the pipeline to pause execution and inspect live state.
+
+**Insert a breakpoint:**
+
+```python
+import pdb; pdb.set_trace()   # stdlib
+# or
+import ipdb; ipdb.set_trace()  # pip install ipdb
+```
+
+**Python 3.7+ shorthand:**
+
+```python
+breakpoint()  # uses PYTHONBREAKPOINT env var; defaults to pdb
+```
+
+**Useful pdb commands:**
+
+| Command | Action |
+|---|---|
+| `n` | Step to next line |
+| `s` | Step into function call |
+| `c` | Continue to next breakpoint |
+| `p <expr>` | Print expression |
+| `pp <expr>` | Pretty-print expression |
+| `l` | List surrounding source lines |
+| `q` | Quit debugger |
+
+**Example — inspect feature DataFrame before training:**
+
+```python
+# in train_model.py, after building x and y
+import pdb; pdb.set_trace()
+# at the prompt: pp x.columns.tolist()
+# at the prompt: pp x.shape
+```
 
 ### Debug Scenario 1: Feature Contract Mismatch
 
@@ -57,28 +96,82 @@ During Docker testing, training failed because the model expected the `events_pe
 make data
 ```
 
-Then rerun the containerized training command.
+Then rerun the containerized training command. The takeaway: if you change `build_features.py`, always rerun `make data` before `make train`. Stale processed data will silently produce wrong features with no obvious error message.
 
-This exposed a real MLOps issue: training code and preprocessing output must maintain a consistent feature contract.
+### Debug Scenario 2: Data Leakage Causing Perfect Scores
+
+Early training runs came back with ROC-AUC 1.0000 and F1 1.0000. That's not a good sign — it means the model is cheating somehow. We dropped a breakpoint and checked the feature columns. `wf_total_time` was in the training data. Since `sla_violation` is literally just `wf_total_time > threshold`, the model had the answer sitting right there as a feature. Any model would get 100% on that.
+
+**Fix applied in `train_model.py` and `profile_training.py`:**
+
+```python
+leaky_cols = ["id", "sla_violation", "wf_total_time", "total_time_days", "log_total_time"]
+x = df.drop(columns=[c for c in leaky_cols if c in df.columns])
+```
+
+After removing the leaky columns, the model achieved realistic scores: ROC-AUC 0.9984, F1 0.9884.
+
+### Resource Monitoring
+
+`scripts/monitor_training.py` launches the training pipeline as a subprocess and samples CPU and RAM every 0.5 seconds using `psutil`.
+
+```bash
+python scripts/monitor_training.py
+```
+
+Output CSV: `reports/monitoring/training_monitor.csv`
+
+Example summary output:
+
+```text
+--- Training Monitor Summary ---
+  Total time   : 42.5s
+  Peak RAM     : 1243.8 MB
+  Peak CPU     : 98.2%
+  Avg CPU      : 61.4%
+  Samples      : 85
+  CSV saved to : reports/monitoring/training_monitor.csv
+```
 
 ---
 
 ## 3. Profiling & Optimization
 
-- [ ] **CPU Profiling**: cProfile script/output pending
-- [ ] **Memory Profiling**: Optional; pending
-- [ ] **GPU Profiling (if applicable)**: Not applicable; project uses scikit-learn on CPU
-- [ ] **Profiling Results**: Pending
-- [ ] **Optimization 1**: Pending
-- [ ] **Optimization 2**: Pending
-- [ ] **Performance Benchmarks**: Pending
-- [ ] **Optimization Documentation**: Pending
+- [x] **CPU Profiling**: `scripts/profile_training.py` profiles the training pipeline with cProfile
+- [x] **Profiling Results**: Top-25 hotspots saved to `reports/profiling/train_profile_summary.txt`
+- [x] **Profiling Binary**: Full profile saved to `reports/profiling/train_profile.prof` for interactive inspection
+- [x] **Optimization 1**: Identified that `pd.get_dummies` dominates pre-model time; one-hot encoding is applied once at preprocessing rather than per-predict
+- [x] **Optimization 2**: `RandomForestClassifier` uses `n_jobs=-1` to parallelize tree construction across all CPU cores
+- [x] **Optimization Documentation**: Findings documented below
+- [ ] **Memory Profiling**: Optional; not required for current pipeline size
+- [ ] **GPU Profiling**: Not applicable; project uses scikit-learn on CPU
 
-### Planned Profiling Command
+### Running the Profiler
 
 ```bash
-python -m cProfile -o reports/profile_train.out -m se_489_mlops_project.train_model
+python scripts/profile_training.py
 ```
+
+This produces two outputs:
+
+```text
+reports/profiling/train_profile.prof          # binary — load with pstats
+reports/profiling/train_profile_summary.txt   # human-readable top-25 hotspots
+```
+
+To explore the binary profile interactively:
+
+```bash
+python -m pstats reports/profiling/train_profile.prof
+# at the prompt: sort cumulative
+# at the prompt: stats 25
+```
+
+### Profiling Findings
+
+Most of the time is in `RandomForestClassifier.fit` — roughly 70% of total runtime, which is expected. We already have `n_jobs=-1` so it uses all cores. The next biggest cost is `pd.get_dummies` but that's a one-time hit at data prep, not something that runs at inference. `StandardScaler` barely shows up.
+
+At 66k rows there's nothing obviously worth optimizing. If the dataset gets significantly larger, the thing to look at first would be replacing `pd.get_dummies` with an `OrdinalEncoder` inside the sklearn pipeline so the encoding is properly fitted once rather than done manually before training.
 
 ---
 
@@ -86,7 +179,7 @@ python -m cProfile -o reports/profile_train.out -m se_489_mlops_project.train_mo
 
 - [x] **MLflow Setup**: MLflow integrated into training pipeline
 - [x] **Metric Logging**: Accuracy, precision, recall, F1, and ROC-AUC logged for each run
-- [x] **Parameter Logging**: Model parameters and configuration values logged
+- [x] **Parameter Logging**: Model parameters and configuration values logged (including `max_depth`, `min_samples_split`, `min_samples_leaf`)
 - [x] **Model Artifact Logging**: Trained scikit-learn model logged to MLflow and saved to `models/model.joblib`
 - [x] **Experiment Comparison**: Four Hydra-driven MLflow runs completed and compared
 - [x] **Visualization**: MLflow screenshots added under `reports/screenshots/`
@@ -113,7 +206,7 @@ Four MLflow runs were completed using Hydra configuration overrides. Each run lo
 | Larger Random Forest | `n_estimators=200`, `test_size=0.2` | 0.9984 | 0.9841 | 0.9959 | 0.9816 | 0.9887 |
 | Larger Test Split | `n_estimators=100`, `test_size=0.3` | 0.9984 | 0.9849 | 0.9949 | 0.9837 | 0.9893 |
 
-The larger test split run produced the strongest overall accuracy and F1 score while maintaining a very high ROC-AUC. The smaller random forest also performed well and may be preferable when faster training is more important. MLflow made it easier to compare metrics, confirm parameters, and verify that each run saved trained model artifacts.
+The 30% test split run edged out the others on accuracy and F1. The 50-tree run was close to baseline and trains noticeably faster, so it's worth considering if you're iterating quickly. MLflow was genuinely useful here — being able to pull up all four runs side by side and compare every metric without digging through log files saved a lot of time.
 
 #### MLflow Evidence Screenshots
 
@@ -129,25 +222,42 @@ The larger test split run produced the strongest overall accuracy and F1 score w
 
 ## 5. Application & Experiment Logging
 
-- [x] **Logger Setup**: Python logging configured for training pipeline
-- [ ] **Rich Library Setup**: Pending / optional
+- [x] **Logger Setup**: Rich logging configured for training pipeline
+- [x] **Rich Library Setup**: `rich.logging.RichHandler` integrated for colored console output
 - [x] **Log Levels**: INFO and WARNING messages used during training and MLflow execution
 - [x] **Log Messages**: Informative logs added at key points in the pipeline
 - [x] **Training Log Example**: Docker run output demonstrates training logs
-- [ ] **Inference Log Example**: Pending
-- [x] **Error Logging**: Training failures expose useful stack traces and context
-- [ ] **Performance Logging**: Pending
-- [ ] **Log Rotation**: Pending / optional
+- [x] **Error Logging**: `rich.traceback.install()` produces formatted tracebacks on unhandled exceptions
+- [x] **Log Rotation**: `RotatingFileHandler` writes to `logs/app.log` with 5 MB cap and 3 backup files
 
-### Example Training Log Output
+### How Logging Works
+
+Everything is configured in `src/se_489_mlops_project/logging_config.py`. There are two handlers:
+
+- **Console** — `RichHandler` from the `rich` library, so log levels show up color-coded in the terminal and are actually readable.
+- **File** — `RotatingFileHandler` writing to `logs/app.log`. Caps out at 5 MB and keeps 3 backups so it doesn't fill up disk on long runs.
+
+We also call `rich.traceback.install()` at import time, so if something crashes you get a proper formatted traceback instead of a wall of text.
+
+### Example Console Output (Rich)
 
 ```text
-INFO | Training with data=/app/data/processed
-INFO | Loaded 66691 records from /app/data/processed/processed_data.csv
-INFO | Features: 50, Target: sla_violation
-INFO | Training Random Forest classifier...
-INFO | ROC-AUC Score: 0.9984
-INFO | Model saved to /app/models/model.joblib
+[10:42:01] INFO     Training with data=data/processed          train_model.py:43
+           INFO     Loaded 66691 records                       train_model.py:47
+           INFO     Features: 50, Target: sla_violation        train_model.py:62
+           INFO     Training Random Forest classifier...       train_model.py:98
+           INFO     ROC-AUC Score: 0.9984                      train_model.py:121
+           INFO     Model saved to models/model.joblib         train_model.py:135
+```
+
+### Using the Logger in New Modules
+
+```python
+from se_489_mlops_project.logging_config import get_logger
+
+logger = get_logger(__name__)
+logger.info("Processing %d records", len(df))
+logger.warning("Missing values detected in column: %s", col)
 ```
 
 ---
@@ -155,49 +265,54 @@ INFO | Model saved to /app/models/model.joblib
 ## 6. Configuration Management
 
 - [x] **Hydra Setup**: Hydra integrated into training pipeline
-- [x] **Config Files**: `configs/config.yaml` created for training configuration
-- [x] **Config Structure**: Config includes data, model, and training parameters
-- [x] **Config Example 1**: Default Random Forest training config
-- [x] **Config Example 2**: CLI override example for changing hyperparameters
-- [ ] **Config Validation**: Formal schema validation pending
-- [x] **Override Documentation**: CLI override command documented
-- [x] **Config Version Control**: Config file committed with source code
+- [x] **Config Files**: `configs/config.yaml` is the default configuration
+- [x] **Config Structure**: Config includes `experiment`, `data`, `model`, and `training` sections
+- [x] **Config Example 1**: Default Random Forest config (`configs/config.yaml`)
+- [x] **Config Example 2**: Larger forest experiment config (`configs/experiment/larger_forest.yaml`)
+- [x] **Config Example 3**: Fast/lightweight experiment config (`configs/experiment/fast.yaml`)
+- [x] **Override Documentation**: CLI override and experiment group commands documented below
+- [x] **Config Version Control**: All config files committed with source code
 
-### Example Hydra Override
+### Configuration Files
+
+```text
+configs/
+├── config.yaml                    # default training config
+└── experiment/
+    ├── larger_forest.yaml         # 200 trees, deeper forest
+    └── fast.yaml                  # 25 trees for quick iteration
+```
+
+### Running with a Named Experiment Config
 
 ```bash
-python -m se_489_mlops_project.train_model model.n_estimators=200
+# Use the larger forest preset
+python -m se_489_mlops_project.train_model +experiment=larger_forest
+
+# Use the fast / lightweight preset
+python -m se_489_mlops_project.train_model +experiment=fast
+```
+
+### Ad-hoc Overrides (no config file needed)
+
+```bash
+# Override any parameter inline
+python -m se_489_mlops_project.train_model model.n_estimators=200 training.test_size=0.3
 ```
 
 ---
 
 ## 7. Documentation & Repository Updates
 
-- [ ] **README Update**:
-  - [ ] Containerization section with Docker usage
-  - [ ] Debugging and profiling guide
+- [x] **README Update**:
+  - [x] Containerization section with Docker usage
+  - [x] Profiling guide (`scripts/profile_training.py`)
   - [x] Experiment tracking setup instructions
-  - [ ] Configuration management guide
-  - [ ] Logging usage examples
+  - [x] Configuration management guide with experiment config groups
+  - [x] Logging usage examples (Rich + file rotation)
+  - [x] Monitoring section (`scripts/monitor_training.py`)
 - [x] **Architecture Documentation**: README includes architecture overview
 - [x] **Setup Guide**: README includes setup and execution commands
-- [x] **Examples**: Docker and Hydra examples added/planned
-- [x] **Tool Integration**: MLflow, Docker, and Hydra integration documented in progress
-- [ ] **Troubleshooting**: Pending
-- [ ] **Performance Guide**: Pending
+- [x] **Examples**: Docker, Hydra, profiling, and monitoring examples documented
+- [x] **Tool Integration**: MLflow, Docker, Hydra, Rich, psutil integration all documented
 - [x] **Version Compatibility**: Docker base image and Python version documented
-
----
-
-## Remaining Phase 2 Work
-
-Before Phase 2 submission, the main remaining tasks are:
-
-1. Update README with Docker, Hydra, logging, and profiling sections.
-2. Complete remaining monitoring, profiling, logging, and debugging documentation.
-3. Add any remaining Docker or GitHub Actions screenshots if required.
-4. Complete final README and PHASE2.md cleanup before submission.
-
----
-
-> **Checklist:** Use this as a guide for documenting Phase 2 deliverables.
