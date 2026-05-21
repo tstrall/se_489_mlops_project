@@ -19,15 +19,14 @@ from __future__ import annotations
 
 import cProfile
 import pstats
+import sys
 from io import StringIO
 from pathlib import Path
 
 # Make sure the src package is importable when running the script directly
-import sys
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from se_489_mlops_project.config import MODELS_DIR, PROCESSED_DATA_DIR  # noqa: E402
+from se_489_mlops_project.config import PROCESSED_DATA_DIR  # noqa: E402
 
 OUTPUT_DIR = Path(__file__).resolve().parents[1] / "reports" / "profiling"
 PROF_FILE = OUTPUT_DIR / "train_profile.prof"
@@ -44,7 +43,13 @@ def _run_training() -> None:
     data_file = PROCESSED_DATA_DIR / "processed_data.csv"
     df = pd.read_csv(data_file)
 
-    leaky_cols = ["id", "sla_violation", "wf_total_time", "total_time_days", "log_total_time"]
+    leaky_cols = [
+        "id",
+        "sla_violation",
+        "wf_total_time",
+        "total_time_days",
+        "log_total_time",
+    ]
     x = df.drop(columns=[c for c in leaky_cols if c in df.columns])
     y = df["sla_violation"]
 

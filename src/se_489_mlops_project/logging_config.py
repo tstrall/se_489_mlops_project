@@ -11,7 +11,6 @@ nicely formatted traceback in the terminal.
 from __future__ import annotations
 
 import logging
-import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 from typing import Literal
@@ -21,7 +20,7 @@ from rich.traceback import install as _install_rich_traceback
 
 LogLevel = Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
 
-_LOGS_DIR = Path(__file__).resolve().parents[3] / "logs"
+_LOGS_DIR = Path(__file__).resolve().parents[2] / "logs"
 _LOG_FILE = _LOGS_DIR / "app.log"
 _MAX_BYTES = 5 * 1024 * 1024  # 5 MB
 _BACKUP_COUNT = 3
