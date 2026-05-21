@@ -1,21 +1,13 @@
-"""Monitor CPU and memory usage during a training run.
+"""Track CPU and RAM usage while training runs.
 
-Spawns the training pipeline in a subprocess and polls ``psutil`` every
-``POLL_INTERVAL`` seconds.  Writes a CSV to
-``reports/monitoring/training_monitor.csv`` and prints a summary on exit.
+Runs the training pipeline in a subprocess and samples psutil every
+POLL_INTERVAL seconds. Results go to reports/monitoring/training_monitor.csv.
+Prints a summary (peak RAM, peak CPU, total time) when training finishes.
 
-Usage
------
-From the repo root::
-
+Usage:
     python scripts/monitor_training.py
 
-The CSV columns are:
-
-    elapsed_s, cpu_percent, rss_mb, vms_mb
-
-where ``rss_mb`` is the resident set size (physical RAM) and ``vms_mb`` is
-the virtual memory size of the training process.
+CSV columns: elapsed_s, cpu_percent, rss_mb, vms_mb
 """
 
 from __future__ import annotations

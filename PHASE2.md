@@ -1,7 +1,7 @@
 # PHASE 2: Enhancing ML Operations with Containerization & Monitoring
 
 ## Overview
-Phase 2 focuses on operationalizing HelpEvents by adding containerization, configuration management, experiment tracking, logging, profiling, and monitoring. This phase ensures the SLA violation prediction pipeline can run consistently across environments and can be inspected, debugged, and reproduced by other team members.
+Phase 2 adds the operational layer on top of the Phase 1 model — Docker for consistent environments, Hydra for config management, MLflow for experiment tracking, Rich logging, cProfile for profiling, and psutil-based monitoring. The goal was to make the pipeline something you can hand off to a teammate and have it actually work on their machine.
 
 ---
 
@@ -96,11 +96,11 @@ During Docker testing, training failed because the model expected the `events_pe
 make data
 ```
 
-Then rerun the containerized training command. This exposed a real MLOps issue: training code and preprocessing output must maintain a consistent feature contract. The fix was to ensure `make data` is always run before `make train` whenever `build_features.py` changes.
+Then rerun the containerized training command. The takeaway: if you change `build_features.py`, always rerun `make data` before `make train`. Stale processed data will silently produce wrong features with no obvious error message.
 
 ### Debug Scenario 2: Data Leakage Causing Perfect Scores
 
-Early training runs produced ROC-AUC of 1.0000 and F1 of 1.0000 — suspiciously perfect. Using pdb to inspect the feature matrix revealed that `wf_total_time` (the raw resolution time in seconds) was present in the training features. Since `sla_violation = 1 if wf_total_time > threshold`, the model had direct access to the value that defines the target label, making the problem trivially solvable and rendering the model useless in production.
+Early training runs came back with ROC-AUC 1.0000 and F1 1.0000. That's not a good sign — it means the model is cheating somehow. We dropped a breakpoint and checked the feature columns. `wf_total_time` was in the training data. Since `sla_violation` is literally just `wf_total_time > threshold`, the model had the answer sitting right there as a feature. Any model would get 100% on that.
 
 **Fix applied in `train_model.py` and `profile_training.py`:**
 
@@ -169,13 +169,9 @@ python -m pstats reports/profiling/train_profile.prof
 
 ### Profiling Findings
 
-The top CPU consumers during a training run are:
+Most of the time is in `RandomForestClassifier.fit` — roughly 70% of total runtime, which is expected. We already have `n_jobs=-1` so it uses all cores. The next biggest cost is `pd.get_dummies` but that's a one-time hit at data prep, not something that runs at inference. `StandardScaler` barely shows up.
 
-1. `RandomForestClassifier.fit` — dominates total runtime (~70%). Parallelized with `n_jobs=-1`.
-2. `pd.get_dummies` — one-time cost at feature preparation; not repeated at inference because the model pipeline stores fitted transformers.
-3. `StandardScaler.fit_transform` (inside `ColumnTransformer`) — negligible relative to tree construction.
-
-No further optimization is needed at current dataset size (~66k rows). If dataset grows significantly, the next step would be switching from `pd.get_dummies` to `OrdinalEncoder` inside the sklearn pipeline so encoding is fitted once and reused without manual column management.
+At 66k rows there's nothing obviously worth optimizing. If the dataset gets significantly larger, the thing to look at first would be replacing `pd.get_dummies` with an `OrdinalEncoder` inside the sklearn pipeline so the encoding is properly fitted once rather than done manually before training.
 
 ---
 
@@ -210,7 +206,7 @@ Four MLflow runs were completed using Hydra configuration overrides. Each run lo
 | Larger Random Forest | `n_estimators=200`, `test_size=0.2` | 0.9984 | 0.9841 | 0.9959 | 0.9816 | 0.9887 |
 | Larger Test Split | `n_estimators=100`, `test_size=0.3` | 0.9984 | 0.9849 | 0.9949 | 0.9837 | 0.9893 |
 
-The larger test split run produced the strongest overall accuracy and F1 score while maintaining a very high ROC-AUC. The smaller random forest also performed well and may be preferable when faster training is more important. MLflow made it easier to compare metrics, confirm parameters, and verify that each run saved trained model artifacts.
+The 30% test split run edged out the others on accuracy and F1. The 50-tree run was close to baseline and trains noticeably faster, so it's worth considering if you're iterating quickly. MLflow was genuinely useful here — being able to pull up all four runs side by side and compare every metric without digging through log files saved a lot of time.
 
 #### MLflow Evidence Screenshots
 
@@ -234,14 +230,14 @@ The larger test split run produced the strongest overall accuracy and F1 score w
 - [x] **Error Logging**: `rich.traceback.install()` produces formatted tracebacks on unhandled exceptions
 - [x] **Log Rotation**: `RotatingFileHandler` writes to `logs/app.log` with 5 MB cap and 3 backup files
 
-### Logging Architecture
+### How Logging Works
 
-The project uses a two-handler setup defined in `src/se_489_mlops_project/logging_config.py`:
+Everything is configured in `src/se_489_mlops_project/logging_config.py`. There are two handlers:
 
-- **Console** — `rich.logging.RichHandler` renders colored, human-readable output with timestamps and log levels highlighted by severity.
-- **File** — `RotatingFileHandler` writes plain-text logs to `logs/app.log`, rotating at 5 MB and keeping up to 3 backup files.
+- **Console** — `RichHandler` from the `rich` library, so log levels show up color-coded in the terminal and are actually readable.
+- **File** — `RotatingFileHandler` writing to `logs/app.log`. Caps out at 5 MB and keeps 3 backups so it doesn't fill up disk on long runs.
 
-Rich tracebacks are installed at import time so unhandled exceptions print a formatted traceback with local variable values.
+We also call `rich.traceback.install()` at import time, so if something crashes you get a proper formatted traceback instead of a wall of text.
 
 ### Example Console Output (Rich)
 

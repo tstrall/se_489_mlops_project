@@ -179,11 +179,9 @@ python -m se_489_mlops_project.train_model model.n_estimators=200 training.test_
 
 ### Logging
 
-The pipeline uses `rich` for colored, human-readable console output and a rotating file handler for persistent logs.
+Logging uses `rich` for colored terminal output — log levels are color-coded and timestamps are included. Logs also write to `logs/app.log` with rotation at 5 MB (3 backups kept). If a run crashes, the traceback is formatted by `rich` with local variable values shown.
 
-Console output is rendered by `RichHandler` with log level highlighting. File logs are written to `logs/app.log` (5 MB cap, 3 backups) using `RotatingFileHandler`. Unhandled exceptions print a formatted traceback via `rich.traceback.install()`.
-
-To use the logger in any module:
+To use the logger in a new module:
 
 ```python
 from se_489_mlops_project.logging_config import get_logger
@@ -215,13 +213,13 @@ python -m pstats reports/profiling/train_profile.prof
 
 ### Resource Monitoring
 
-Monitor CPU and RAM usage during a training run:
+Track CPU and RAM during a training run:
 
 ```bash
 python scripts/monitor_training.py
 ```
 
-Polls `psutil` every 0.5 seconds and writes a CSV to `reports/monitoring/training_monitor.csv` with columns `elapsed_s`, `cpu_percent`, `rss_mb`, `vms_mb`. Prints a summary (peak RAM, peak CPU, total time) on completion.
+Samples every 0.5 seconds and writes to `reports/monitoring/training_monitor.csv`. Prints peak RAM, peak CPU, and total run time when it finishes.
 
 ### Verified Docker Training Results
 
