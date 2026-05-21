@@ -21,6 +21,7 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 
 from se_489_mlops_project.config import MODELS_DIR
+from se_489_mlops_project.config_validation import validate_config
 from se_489_mlops_project.logging_config import get_logger, setup_logging
 from se_489_mlops_project.models.model import Model
 from se_489_mlops_project.utils.seed import set_seed
@@ -142,7 +143,8 @@ def train(
 )
 def main(cfg: DictConfig) -> None:
     """CLI entrypoint for model training."""
-    setup_logging()
+    setup_logging(log_file="logs/train.log")
+    validate_config(cfg)
     set_seed(cfg.training.random_state)
 
     train(
