@@ -1,8 +1,9 @@
-.PHONY: install dev data train predict test lint format clean docker_build docker_run docs
+.PHONY: install dev data train predict api test lint format clean docker_build docker_run docker_api docs
 
 # Python and tools from virtual environment
 PYTHON = .venv/bin/python
 UV = UV_CACHE_DIR=.venv/.uv-cache .venv/bin/uv
+PIP = .venv/bin/pip
 PYTEST = .venv/bin/pytest
 RUFF = .venv/bin/ruff
 PRECOMMIT = .venv/bin/pre-commit
@@ -12,12 +13,12 @@ MKDOCS = .venv/bin/mkdocs
 # Then replace 'pip install' with 'uv pip install' in the commands below.
 
 install:
-	$(UV) pip install -U pip
-	$(UV) pip install -r requirements.txt
-	$(UV) pip install -e .
+	if [ -x .venv/bin/uv ]; then $(UV) pip install -U pip; else $(PIP) install -U pip; fi
+	if [ -x .venv/bin/uv ]; then $(UV) pip install -r requirements.txt; else $(PIP) install -r requirements.txt; fi
+	if [ -x .venv/bin/uv ]; then $(UV) pip install -e .; else $(PIP) install -e .; fi
 
 dev: install
-	$(UV) pip install -r requirements_dev.txt
+	if [ -x .venv/bin/uv ]; then $(UV) pip install -r requirements_dev.txt; else $(PIP) install -r requirements_dev.txt; fi
 	$(PRECOMMIT) install
 
 data:
@@ -28,6 +29,9 @@ train:
 
 predict:
 	$(PYTHON) -m se_489_mlops_project.predict_model --input data/processed/processed_data.csv --output predictions.csv
+
+api:
+	$(PYTHON) -m uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 
 test:
 	$(PYTEST) tests/
@@ -54,6 +58,9 @@ docker_build:
 
 docker_run:
 	docker run --rm se_489_mlops_project
+
+docker_api:
+	docker compose up api
 
 docs:
 	$(MKDOCS) build -f docs/mkdocs.yml

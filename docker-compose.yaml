@@ -1,14 +1,27 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  se_489_mlops_project:
+  trainer:
     build:
       context: .
       dockerfile: dockerfiles/Dockerfile
-    container_name: se_489_mlops_project_app
+    container_name: se_489_mlops_project_trainer
     volumes:
       - ./data:/app/data
       - ./models:/app/models
+      - ./mlruns:/app/mlruns
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  api:
+    build:
+      context: .
+      dockerfile: dockerfiles/Dockerfile
+    container_name: se_489_mlops_project_api
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - ./data:/app/data:ro
+      - ./models:/app/models:ro
     environment:
       - PYTHONUNBUFFERED=1
     ports:

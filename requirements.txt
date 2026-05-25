@@ -143,10 +143,10 @@ requests==2.33.1
 rfc3339-validator==0.1.4
 rfc3986-validator==0.1.1
 rfc3987-syntax==1.1.0
+rich==13.9.4
 rpds-py==0.30.0
 scikit-learn==1.8.0
 scipy==1.17.1
--e git+https://github.com/tstrall/se_489_mlops_project.git@2123490710c8fde4a33cfbe5cb67cf6ba68d5aa7#egg=se_489_mlops_project
 Send2Trash==2.1.0
 setuptools==82.0.1
 six==1.17.0

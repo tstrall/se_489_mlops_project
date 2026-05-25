@@ -2,6 +2,14 @@
 
 Predict SLA violations from event sequences
 
+## Phase 3 Demo Recording
+
+> **TODO before final submission:** Embed or link the required 2-5 minute narrated/captioned end-to-end demo here.
+>
+> Recording link: `TODO: paste Loom, YouTube, Hugging Face, or repo video link`
+>
+> The recording should show the Hugging Face Streamlit app, a realistic support-ticket input, the SLA-risk prediction, and evidence that the request reached the deployed FastAPI backend on GCP Cloud Run or Cloud Functions.
+
 ## Team Information
 
 - **Project Lead:** Ted Strall (tstrall@depaul.edu)
@@ -237,6 +245,65 @@ The trained model artifact is saved to:
 models/model.joblib
 ```
 
+## Phase 3: Continuous ML and Deployment
+
+Phase 3 turns the tracked training pipeline into an automated and reachable system. The repository now includes GitHub Actions workflows for CI, Docker image building, CML pull-request reporting, and Hugging Face Space sync:
+
+```text
+.github/workflows/ci.yml
+.github/workflows/docker-build.yml
+.github/workflows/cml.yml
+.github/workflows/huggingface-space.yml
+```
+
+The deployed serving path uses the FastAPI app in `api/main.py`. It exposes:
+
+- `GET /` health check
+- `GET /sample` sample request payload from processed data
+- `POST /predict` SLA violation prediction
+
+Run the API locally:
+
+```bash
+make api
+```
+
+Run the API with Docker Compose:
+
+```bash
+docker compose up api
+```
+
+Example prediction request:
+
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "features": {
+      "issue_contr_count": 1,
+      "issue_comments_count": 3,
+      "processing_steps": 4,
+      "num_events": 8,
+      "duration_seconds": 3600,
+      "issue_priority": "Medium",
+      "issue_type": "Ticket",
+      "events_per_day": 8,
+      "comments_per_contributor": 3,
+      "is_high_priority": 0,
+      "log_num_events": 2.197224577
+    }
+  }'
+```
+
+The user-facing demo app lives in `app/streamlit_app.py` and is designed for deployment on Hugging Face Spaces. Set `HELPEVENTS_API_URL` in the Space environment to point at the deployed Cloud Run or Cloud Functions backend.
+
+Phase 3 evidence and remaining manual screenshot tasks are tracked in:
+
+- [PHASE3.md](PHASE3.md)
+- [docs/PHASE3_HANDOFF.md](docs/PHASE3_HANDOFF.md)
+- [DEPLOYMENT.md](DEPLOYMENT.md)
+
 
 ## Technology Stack
 
@@ -267,6 +334,11 @@ models/model.joblib
 
 ### Configuration Management
 - **Hydra** - Config-driven experimentation and parameter overrides
+
+### Deployment and UI
+- **FastAPI** - HTTP prediction service
+- **Uvicorn** - ASGI server for local and Cloud Run serving
+- **Streamlit** - Hugging Face Spaces user interface
 
 
 ## Project Structure
@@ -366,12 +438,16 @@ make format
 # Run tests
 make test
 
+# Serve the FastAPI app locally
+make api
+
 # Clean up build artifacts
 make clean
 
 # Docker operations
 make docker_build
 make docker_run
+make docker_api
 
 # Serve documentation locally
 make docs

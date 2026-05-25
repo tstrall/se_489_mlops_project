@@ -42,9 +42,15 @@ jobs:
         run: |
           pip install -e .
 
+      - name: Pull DVC data if configured
+        if: hashFiles('.dvc/config', 'dvc.yaml', '*.dvc') != ''
+        run: |
+          pip install "dvc[gdrive,s3,gs]>=3.0"
+          dvc pull
+
       - name: Type check with mypy
         run: |
-          mypy src
+          mypy src api
 
       - name: Run tests with pytest
         run: |

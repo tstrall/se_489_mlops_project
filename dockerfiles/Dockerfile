@@ -27,4 +27,4 @@ COPY . .
 # Install the package
 RUN pip install --no-cache-dir -e .
 
-ENTRYPOINT ["python", "-m", "se_489_mlops_project.train_model"]
+CMD ["python", "-m", "se_489_mlops_project.train_model"]

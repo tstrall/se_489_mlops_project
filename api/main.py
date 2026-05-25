@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Any
 
@@ -6,8 +7,8 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-MODEL_PATH = Path("models/model.joblib")
-DATA_PATH = Path("data/processed/processed_data.csv")
+MODEL_PATH = Path(os.getenv("HELPEVENTS_MODEL_PATH", "models/model.joblib"))
+DATA_PATH = Path(os.getenv("HELPEVENTS_DATA_PATH", "data/processed/processed_data.csv"))
 
 app = FastAPI(title="HelpEvents SLA Prediction API")
 
