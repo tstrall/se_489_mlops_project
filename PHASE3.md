@@ -9,7 +9,7 @@
 
 ## Phase 3 Status
 
-Phase 3 adds CI/CD automation, CML reporting, cloud deployment scaffolding, and an interactive Streamlit UI on top of the Phase 1/2 training pipeline. The repository now contains the code and workflow files needed to run these systems, but cloud screenshots, live URLs, and the final demo recording must be captured after the team runs the GitHub Actions, GCP, and Hugging Face deployments.
+Phase 3 adds CI/CD automation, CML reporting, cloud deployment evidence, and an interactive Streamlit UI on top of the Phase 1/2 training pipeline. The repository now contains the code, workflow files, deployed Cloud Run API evidence, and Hugging Face Space evidence needed to demonstrate the end-to-end serving path.
 
 ## 1. Continuous Integration & Testing
 
@@ -33,7 +33,7 @@ Phase 3 adds CI/CD automation, CML reporting, cloud deployment scaffolding, and 
 
 - [x] **2.1 Automated Docker Builds**
   - File/dir reference: `.github/workflows/docker-build.yml`, `dockerfiles/Dockerfile`, and `docker-compose.yaml`.
-  - Screenshot evidence: `docs/screenshots/dockerhub-image.png` and/or `docs/screenshots/artifact-registry-image.png`.
+  - Screenshot evidence: `docs/screenshots/docker-image.png` for the local image and `docs/screenshots/gc-artifactrepo.png` for the pushed Artifact Registry image.
   - Explanation: The Docker workflow builds the same `dockerfiles/Dockerfile` used in Phase 2, smoke-tests the image, and can push to Docker Hub and GCP Artifact Registry when secrets are configured. The Dockerfile now uses `CMD` instead of a fixed `ENTRYPOINT`, so the same image can train by default or serve FastAPI when Cloud Run/Compose supplies a different command.
   - Required secrets: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_SERVICE_ACCOUNT`, `GCP_ARTIFACT_REGISTRY_HOST`, and `GCP_ARTIFACT_REGISTRY_IMAGE`.
 
@@ -44,10 +44,10 @@ Phase 3 adds CI/CD automation, CML reporting, cloud deployment scaffolding, and 
 
 ## 3. Deployment on Google Cloud Platform (GCP)
 
-- [ ] **3.1 GCP Artifact Registry**
-  - File/dir reference: `.github/workflows/docker-build.yml` and `docs/PHASE3_HANDOFF.md`.
-  - Screenshot evidence: `docs/screenshots/artifact-registry-image.png`.
-  - Explanation: The workflow is ready to authenticate with Workload Identity and push the Docker image to Artifact Registry. The team must create the registry, configure the GitHub secrets listed above, run the workflow, and capture the Artifact Registry screenshot before final submission.
+- [x] **3.1 GCP Artifact Registry**
+  - File/dir reference: `.github/workflows/docker-build.yml`, `dockerfiles/Dockerfile`, and `docs/PHASE3_HANDOFF.md`.
+  - Screenshot evidence: `docs/screenshots/gc-artifactrepo.png`.
+  - Explanation: The FastAPI Docker image was built and pushed to Google Artifact Registry under the `helpevents` repository. This provides a managed container artifact that Cloud Run can deploy from the same image tested locally.
 
 - [ ] **3.2 Custom Training Job on GCP**
   - File/dir reference: `dockerfiles/Dockerfile`, `configs/config.yaml`, `configs/experiment/fast.yaml`, and `docs/PHASE3_HANDOFF.md`.
@@ -56,23 +56,23 @@ Phase 3 adds CI/CD automation, CML reporting, cloud deployment scaffolding, and 
 
 - [ ] **3.3 FastAPI + GCP Cloud Functions**
   - File/dir reference: `api/main.py` and `docs/PHASE3_HANDOFF.md`.
-  - Live endpoint URL: `TODO: paste Cloud Functions URL`.
-  - Sample request/response evidence: `docs/screenshots/cloud-functions-endpoint.png`.
-  - Explanation: `api/main.py` exposes `/`, `/sample`, and `/predict`, and supports `HELPEVENTS_MODEL_PATH` / `HELPEVENTS_DATA_PATH` environment variables for cloud deployment paths. The team must deploy the app to Cloud Functions or document why Cloud Run was selected as the primary serving target if Cloud Functions is not used.
+  - Live endpoint URL: Not used; Cloud Run is the primary FastAPI serving target for this project.
+  - Sample request/response evidence: Not applicable for the final deployed backend; Cloud Run evidence is documented in section 3.4.
+  - Explanation: `api/main.py` exposes `/`, `/sample`, and `/predict`, and supports `HELPEVENTS_MODEL_PATH` / `HELPEVENTS_DATA_PATH` environment variables for cloud deployment paths. Cloud Run was selected as the primary serving target because the project already packages the API as a Docker image and Cloud Run directly deploys that verified artifact.
 
-- [ ] **3.4 Dockerize & Deploy with GCP Cloud Run**
+- [x] **3.4 Dockerize & Deploy with GCP Cloud Run**
   - File/dir reference: `dockerfiles/Dockerfile`, `docker-compose.yaml`, `.github/workflows/docker-build.yml`, and `api/main.py`.
-  - Live service URL: `TODO: paste Cloud Run URL`.
-  - Sample request/response evidence: `docs/screenshots/cloud-run-service.png`.
-  - Explanation: Cloud Run should use the Phase 2 Docker image with the serving command `uvicorn api.main:app --host 0.0.0.0 --port 8000`. This makes the trained model reachable through HTTP while preserving the same reproducible container base used for training.
+  - Live service URL: `https://helpevents-api-263032795187.us-central1.run.app`.
+  - Sample request/response evidence: `docs/screenshots/gc-cloudrun.png`, `docs/screenshots/gc-swagger.png`, and `docs/screenshots/gc-predict.png`.
+  - Explanation: Cloud Run deploys the Dockerized FastAPI service with `uvicorn api.main:app --host 0.0.0.0 --port 8000`. This makes the trained model reachable through a public HTTPS endpoint while preserving the same reproducible container base used for local Docker testing.
 
 ## 4. Interactive UI
 
 - [x] **4.1 Streamlit app on Hugging Face Spaces**
   - File/dir reference: `app/streamlit_app.py` and `.github/workflows/huggingface-space.yml`.
-  - Hugging Face Space URL: `TODO: paste Space URL`.
-  - Screenshot evidence: `docs/screenshots/huggingface-space.png`.
-  - Explanation: The Streamlit app lets a non-technical user enter ticket characteristics and calls the deployed FastAPI backend for a prediction. The Hugging Face workflow syncs `app/streamlit_app.py` to a Space when `HF_TOKEN` and `HF_SPACE` secrets are configured.
+  - Hugging Face Space URL: `https://huggingface.co/spaces/tstrall/helpevents-sla`.
+  - Screenshot evidence: `docs/screenshots/huggingface-space.png` and `docs/screenshots/huggingface-predict.png`.
+  - Explanation: The Streamlit app lets a non-technical user enter ticket characteristics and calls the deployed Cloud Run FastAPI backend for a prediction. The Hugging Face workflow syncs `app/streamlit_app.py` to the Space using `HF_TOKEN` and `HF_SPACE`, and the Space uses `HELPEVENTS_API_URL` to reach the deployed API.
 
 ## 5. End-to-End Demo Recording
 
@@ -101,7 +101,7 @@ Phase 3 adds CI/CD automation, CML reporting, cloud deployment scaffolding, and 
 ## Final Submission Checklist
 
 - [ ] Add all screenshots under `docs/screenshots/`.
-- [ ] Paste live Cloud Run, Cloud Functions, and Hugging Face URLs above.
+- [x] Paste live Cloud Run and Hugging Face URLs above.
 - [ ] Embed or link the 2-5 minute demo recording near the top of `README.md`.
 - [ ] Run GitHub Actions after secrets are configured and capture green workflow evidence.
 - [ ] Capture GCP cleanup evidence after the demo is recorded.

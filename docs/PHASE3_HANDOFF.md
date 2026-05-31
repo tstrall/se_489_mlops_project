@@ -1,6 +1,6 @@
 # Phase 3 Handoff Runbook
 
-This runbook lists the remaining operational steps for the final Phase 3 submission. The repository now includes the workflow and app scaffolding; the team still needs to run the cloud services, capture screenshots, and paste live URLs into `PHASE3.md` and `README.md`.
+This runbook lists operational steps for the final Phase 3 submission. The repository now includes the workflow files, Cloud Run deployment evidence, Artifact Registry evidence, and Hugging Face Space evidence; the remaining final-submission work is the demo recording, any additional CI/CML screenshots, and cleanup evidence.
 
 ## 1. Local Smoke Tests
 
@@ -28,11 +28,15 @@ curl -X POST http://localhost:8000/predict \
 
 ## 2. Docker
 
-The Phase 2 Dockerfile remains the canonical image:
+The Dockerfile is now configured to serve the FastAPI API by default:
 
 ```bash
-make docker_build
-docker run --rm se_489_mlops_project
+docker build -f dockerfiles/Dockerfile -t helpevents-api .
+docker run --rm \
+  -p 8000:8000 \
+  -v "$PWD/models:/app/models" \
+  -v "$PWD/data/processed:/app/data/processed" \
+  helpevents-api
 ```
 
 Run the API with Docker Compose:
@@ -56,10 +60,10 @@ Configure these repository secrets before running the deployment workflows:
 - `HF_TOKEN`
 - `HF_SPACE`
 
-Example Artifact Registry image value:
+Artifact Registry image used for Cloud Run:
 
 ```text
-us-central1-docker.pkg.dev/<project-id>/<repo-name>/helpevents-sla
+us-central1-docker.pkg.dev/infra-inkwell-457919-t8/helpevents/helpevents-api:latest
 ```
 
 ## 4. CML Pull Request
@@ -78,15 +82,12 @@ docs/screenshots/cml-pr-comment.png
 
 ### Artifact Registry
 
-1. Create an Artifact Registry Docker repository.
-2. Configure the GitHub secrets listed above.
-3. Run the Docker Build and Publish workflow.
-4. Capture the pushed image screenshot.
+The Docker image was pushed to Artifact Registry in project `infra-inkwell-457919-t8`, region `us-central1`, repository `helpevents`.
 
 Screenshot:
 
 ```text
-docs/screenshots/artifact-registry-image.png
+docs/screenshots/gc-artifactrepo.png
 ```
 
 ### Training Job
@@ -107,42 +108,48 @@ docs/screenshots/gcp-training-job.png
 
 ### Cloud Run
 
-Deploy the image with this container command:
+The deployed Cloud Run service URL is:
+
+```text
+https://helpevents-api-263032795187.us-central1.run.app
+```
+
+The container serves FastAPI with:
 
 ```bash
 uvicorn api.main:app --host 0.0.0.0 --port 8000
 ```
 
-Set environment variables if the model or data paths differ from the container defaults:
-
-```text
-HELPEVENTS_MODEL_PATH=/app/models/model.joblib
-HELPEVENTS_DATA_PATH=/app/data/processed/processed_data.csv
-```
-
 Screenshots:
 
 ```text
-docs/screenshots/cloud-run-service.png
-docs/screenshots/cloud-run-request.png
+docs/screenshots/gc-cloudrun.png
+docs/screenshots/gc-swagger.png
+docs/screenshots/gc-predict.png
 ```
 
 ### Cloud Functions
 
-Deploy `api/main.py` as the FastAPI serving module if your team chooses to include Cloud Functions as a second serving target. If Cloud Run is the only live backend, document that choice in `PHASE3.md`.
+Cloud Functions was not used as a second serving target. Cloud Run is the primary live backend because the assignment already required container deployment and the API image had been verified locally before cloud deployment.
 
 Screenshot:
 
 ```text
-docs/screenshots/cloud-functions-endpoint.png
+Not applicable; Cloud Run is the final live backend.
 ```
 
 ## 6. Hugging Face Space
 
-Create a Streamlit Space and set the Space environment variable:
+The Hugging Face Space is live at:
 
 ```text
-HELPEVENTS_API_URL=<Cloud Run service URL>
+https://huggingface.co/spaces/tstrall/helpevents-sla
+```
+
+The Space environment variable is:
+
+```text
+HELPEVENTS_API_URL=https://helpevents-api-263032795187.us-central1.run.app
 ```
 
 Configure GitHub secrets:
@@ -152,10 +159,11 @@ HF_TOKEN=<token with write access>
 HF_SPACE=<username-or-org>/<space-name>
 ```
 
-Run the Hugging Face Space Sync workflow, then capture:
+The Hugging Face Space Sync workflow copies the app to the Space. Screenshots:
 
 ```text
 docs/screenshots/huggingface-space.png
+docs/screenshots/huggingface-predict.png
 ```
 
 ## 7. Demo Recording

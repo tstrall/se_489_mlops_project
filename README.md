@@ -320,6 +320,20 @@ The public `/predict` endpoint returns a successful SLA prediction response from
 
 ![Cloud Run prediction response](docs/screenshots/gc-predict.png)
 
+### Hugging Face Streamlit UI Evidence
+
+The user-facing Streamlit app is deployed on Hugging Face Spaces and calls the Cloud Run FastAPI backend through `HELPEVENTS_API_URL`:
+
+```text
+https://huggingface.co/spaces/tstrall/helpevents-sla
+```
+
+![HelpEvents Streamlit app on Hugging Face Spaces](docs/screenshots/huggingface-space.png)
+
+The deployed UI returns an SLA-risk prediction from the live Cloud Run backend:
+
+![HelpEvents Hugging Face prediction result](docs/screenshots/huggingface-predict.png)
+
 Run the API locally:
 
 ```bash
@@ -362,7 +376,7 @@ curl -X POST http://localhost:8000/predict \
   }'
 ```
 
-The user-facing demo app lives in `app/streamlit_app.py` and is designed for deployment on Hugging Face Spaces. Set `HELPEVENTS_API_URL` in the Space environment to point at the deployed Cloud Run or Cloud Functions backend.
+The user-facing demo app lives in `app/streamlit_app.py` and is deployed on Hugging Face Spaces. Set `HELPEVENTS_API_URL` in the Space environment to point at the deployed Cloud Run backend.
 
 Phase 3 evidence and remaining manual screenshot tasks are tracked in:
 
