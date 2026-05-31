@@ -300,6 +300,26 @@ The containerized `/predict` endpoint returns a successful SLA prediction respon
 
 ![Successful Dockerized prediction response](docs/screenshots/predict.png)
 
+### GCP Cloud Run Deployment Evidence
+
+The Docker image was pushed to Google Artifact Registry and deployed as a public Cloud Run service at:
+
+```text
+https://helpevents-api-263032795187.us-central1.run.app
+```
+
+![HelpEvents API image in Google Artifact Registry](docs/screenshots/gc-artifactrepo.png)
+
+![HelpEvents API deployed on Google Cloud Run](docs/screenshots/gc-cloudrun.png)
+
+The deployed Cloud Run API exposes the same FastAPI Swagger documentation:
+
+![Cloud Run Swagger documentation](docs/screenshots/gc-swagger.png)
+
+The public `/predict` endpoint returns a successful SLA prediction response from the deployed service:
+
+![Cloud Run prediction response](docs/screenshots/gc-predict.png)
+
 Run the API locally:
 
 ```bash
