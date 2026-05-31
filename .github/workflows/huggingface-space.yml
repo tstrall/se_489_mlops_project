@@ -30,10 +30,11 @@ jobs:
         run: |
           git clone "https://oauth2:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" hf-space
           cp app/streamlit_app.py hf-space/app.py
+          cp app/streamlit_app.py hf-space/streamlit_app.py
           cp app/requirements.txt hf-space/requirements.txt
           cd hf-space
           git config user.email "actions@github.com"
           git config user.name "github-actions"
-          git add app.py requirements.txt
+          git add app.py streamlit_app.py requirements.txt
           git commit -m "Sync HelpEvents Streamlit app from GitHub" || exit 0
           git push
