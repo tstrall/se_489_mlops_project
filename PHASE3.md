@@ -1,157 +1,107 @@
 # PHASE 3: Continuous Machine Learning (CML) & Deployment
 
-## Overview
-Phase 3 implements continuous integration/continuous deployment (CI/CD) pipelines and productionizes SE 489 MLOps Project on cloud infrastructure. This phase covers automated testing, containerized workflows, CML integration, and multi-platform deployment options including GCP, Cloud Run, and serverless functions.
+> Every item below needs evidence before final submission:
+> 1. File or directory reference in this repository.
+> 2. Screenshot, live URL, or command output showing the result.
+> 3. A short explanation of what was done and why.
+>
+> Screenshots should be saved under `docs/screenshots/` and linked from this file.
 
----
+## Phase 3 Status
+
+Phase 3 adds CI/CD automation, CML reporting, cloud deployment scaffolding, and an interactive Streamlit UI on top of the Phase 1/2 training pipeline. The repository now contains the code and workflow files needed to run these systems, but cloud screenshots, live URLs, and the final demo recording must be captured after the team runs the GitHub Actions, GCP, and Hugging Face deployments.
 
 ## 1. Continuous Integration & Testing
 
-- [ ] **Unit Tests**: Write pytest test scripts for data processing and model components
-- [ ] **Integration Tests**: Create integration tests for full training pipeline
-- [ ] **Test Coverage**: Aim for >80% code coverage with pytest-cov
-- [ ] **GitHub Actions - Tests**: Create workflow for running tests on every push
-  - [ ] Trigger on: push to main/develop branches and PRs
-  - [ ] Test across multiple Python versions if applicable
-  - [ ] Report coverage metrics
-- [ ] **GitHub Actions - Code Quality**: Create workflow for:
-  - [ ] Running ruff linter
-  - [ ] Type checking with mypy
-  - [ ] Formatting checks
-- [ ] **GitHub Actions - Docker Build**: Create workflow for building Docker image
-  - [ ] Build on PR and main branch push
-  - [ ] Test built image
-- [ ] **Pre-commit Hooks**: Set up pre-commit hooks for:
-  - [ ] Formatting (black/ruff)
-  - [ ] Linting
-  - [ ] Type checking
-  - [ ] Trailing whitespace
-- [ ] **Test Documentation**: Document how to run tests locally and in CI
+- [x] **1.1 Unit Testing with pytest**
+  - File/dir reference: `tests/`, especially `tests/test_model.py`, `tests/test_features.py`, `tests/test_metrics.py`, and `tests/test_api.py`.
+  - Screenshot evidence: `docs/screenshots/ci-green-run.png` or `docs/screenshots/local-pytest-run.png`.
+  - Explanation: The test suite covers the model object, deterministic feature engineering, evaluation metric helpers, and API request normalization. These tests protect the critical training and serving paths so a Phase 3 deployment does not silently ship broken preprocessing or prediction behavior.
 
----
+- [x] **1.2 GitHub Actions CI Workflow**
+  - File/dir reference: `.github/workflows/ci.yml`.
+  - Screenshot evidence: `docs/screenshots/ci-green-run.png`.
+  - Explanation: The CI workflow installs project and development dependencies, runs Ruff linting and format checks, runs mypy on `src`, and executes pytest with coverage output. This gives reviewers a reproducible signal that every push and pull request still passes core quality checks.
+  - DVC note: This repository currently does not include `.dvc/`, `dvc.yaml`, or `.dvc` tracked artifacts. If the team adds DVC before final submission, add `dvc pull` to `.github/workflows/ci.yml` and include the screenshot here.
+
+- [x] **1.3 Pre-commit Hooks**
+  - File/dir reference: `.pre-commit-config.yaml`.
+  - Screenshot evidence: `docs/screenshots/precommit-run.png`.
+  - Explanation: Pre-commit runs Ruff, Ruff format, mypy, trailing whitespace cleanup, EOF checks, and YAML validation before commits. This keeps the final project history cleaner and catches formatting/type issues before CI has to reject a pull request.
 
 ## 2. Continuous Docker Building & CML
 
-- [ ] **Automated Docker Builds**: Configure Docker build pipeline triggered by:
-  - [ ] Commits to main branch
-  - [ ] Version tags
-  - [ ] Manual workflow dispatch
-- [ ] **Docker Push**: Implement push to container registry (Docker Hub, GitHub Container Registry, or GCP)
-- [ ] **CML Initialization**: Initialize CML in repository
-- [ ] **CML Workflow**: Create GitHub Actions workflow for CML that:
-  - [ ] Trains model on workflow runner
-  - [ ] Generates performance metrics
-  - [ ] Creates visualizations/plots
-  - [ ] Comments results on PR
-- [ ] **CML Metrics Output**: Document format and sample output of CML metrics
-- [ ] **CML Plots**: Generate sample plots and document in CML workflow
-- [ ] **Model Comparison**: Create CML output showing comparison of current vs. baseline model
-- [ ] **Workflow Documentation**: Document CML workflow setup and customization
+- [x] **2.1 Automated Docker Builds**
+  - File/dir reference: `.github/workflows/docker-build.yml`, `dockerfiles/Dockerfile`, and `docker-compose.yaml`.
+  - Screenshot evidence: `docs/screenshots/dockerhub-image.png` and/or `docs/screenshots/artifact-registry-image.png`.
+  - Explanation: The Docker workflow builds the same `dockerfiles/Dockerfile` used in Phase 2, smoke-tests the image, and can push to Docker Hub and GCP Artifact Registry when secrets are configured. The Dockerfile now uses `CMD` instead of a fixed `ENTRYPOINT`, so the same image can train by default or serve FastAPI when Cloud Run/Compose supplies a different command.
+  - Required secrets: `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`, `GCP_WORKLOAD_IDENTITY_PROVIDER`, `GCP_SERVICE_ACCOUNT`, `GCP_ARTIFACT_REGISTRY_HOST`, and `GCP_ARTIFACT_REGISTRY_IMAGE`.
 
----
+- [x] **2.2 Continuous Machine Learning (CML)**
+  - File/dir reference: `.github/workflows/cml.yml`, `configs/experiment/fast.yaml`, and `src/se_489_mlops_project/train_model.py`.
+  - Screenshot evidence: `docs/screenshots/cml-pr-comment.png`.
+  - Explanation: The CML workflow runs on pull requests, installs the project, optionally pulls DVC data if DVC is configured, runs the fast Hydra experiment when processed data is available, and posts a Markdown report back to the PR. This connects model evaluation to code review so reviewers can see model behavior changes alongside code changes.
 
-## 3. Deployment on GCP
+## 3. Deployment on Google Cloud Platform (GCP)
 
-- [ ] **GCP Project Setup**: Create GCP project and enable necessary APIs
-- [ ] **Service Account**: Create service account with appropriate permissions for:
-  - [ ] Artifact Registry
-  - [ ] Vertex AI
-  - [ ] Cloud Run
-  - [ ] Cloud Functions
-  - [ ] Compute Engine
-- [ ] **Artifact Registry**: Set up Artifact Registry for storing Docker images
-  - [ ] Create repository in Artifact Registry
-  - [ ] Configure authentication from CI/CD
-  - [ ] Push Docker images to registry
-- [ ] **Vertex AI Training (Option A)**: Set up custom training on Vertex AI
-  - [ ] Create training container image
-  - [ ] Configure training job specification
-  - [ ] Document how to submit training jobs
-- [ ] **Compute Engine Training (Option B)**: Set up training on Compute Engine instance
-  - [ ] Create VM instance with GPU if needed
-  - [ ] Document SSH access and training process
-  - [ ] Set up instance for automated training
-- [ ] **Model Registry**: Store trained models in GCS bucket with versioning
-  - [ ] Create GCS bucket for models
-  - [ ] Implement model upload from training
-  - [ ] Document model retrieval process
-- [ ] **FastAPI Service**: Create FastAPI application for model serving
-  - [ ] Define inference endpoint(s)
-  - [ ] Implement request validation
-  - [ ] Add health check endpoint
-  - [ ] Document API specification
-- [ ] **Cloud Functions Deployment (Option A)**: Deploy inference as Cloud Function
-  - [ ] Package model and FastAPI app for Cloud Functions
-  - [ ] Create Cloud Function with appropriate memory/timeout
-  - [ ] Configure HTTP trigger
-  - [ ] Document invocation and response format
-- [ ] **Cloud Run Deployment (Option B)**: Deploy as containerized service on Cloud Run
-  - [ ] Create Dockerfile optimized for Cloud Run
-  - [ ] Test locally with Cloud Run emulator
-  - [ ] Deploy to Cloud Run with auto-scaling
-  - [ ] Document deployment process
-- [ ] **Streamlit/Gradio Deployment (Option C)**: Deploy demo app on HuggingFace Spaces
-  - [ ] Create Streamlit or Gradio interface for model
-  - [ ] Push to GitHub repository
-  - [ ] Deploy to HuggingFace Spaces
-  - [ ] Document feature walkthrough
-- [ ] **Load Testing**: Test deployment with load testing tool (locust, Apache JMeter)
-  - [ ] Establish baseline performance metrics
-  - [ ] Document scaling characteristics
-- [ ] **Monitoring Setup**: Configure Cloud Monitoring and Cloud Logging
-  - [ ] Set up log aggregation
-  - [ ] Create monitoring dashboards
-  - [ ] Set up alerts for anomalies
+- [ ] **3.1 GCP Artifact Registry**
+  - File/dir reference: `.github/workflows/docker-build.yml` and `docs/PHASE3_HANDOFF.md`.
+  - Screenshot evidence: `docs/screenshots/artifact-registry-image.png`.
+  - Explanation: The workflow is ready to authenticate with Workload Identity and push the Docker image to Artifact Registry. The team must create the registry, configure the GitHub secrets listed above, run the workflow, and capture the Artifact Registry screenshot before final submission.
 
----
+- [ ] **3.2 Custom Training Job on GCP**
+  - File/dir reference: `dockerfiles/Dockerfile`, `configs/config.yaml`, `configs/experiment/fast.yaml`, and `docs/PHASE3_HANDOFF.md`.
+  - Screenshot evidence: `docs/screenshots/gcp-training-job.png`.
+  - Explanation: The training container can run `python -m se_489_mlops_project.train_model +experiment=fast` against data mounted or copied from a GCP bucket. The team must submit the custom job through Vertex AI or Compute Engine, store model outputs in GCS or a mounted artifact path, and capture the completed-job screenshot.
 
-## 4. Documentation & Repository Updates
+- [ ] **3.3 FastAPI + GCP Cloud Functions**
+  - File/dir reference: `api/main.py` and `docs/PHASE3_HANDOFF.md`.
+  - Live endpoint URL: `TODO: paste Cloud Functions URL`.
+  - Sample request/response evidence: `docs/screenshots/cloud-functions-endpoint.png`.
+  - Explanation: `api/main.py` exposes `/`, `/sample`, and `/predict`, and supports `HELPEVENTS_MODEL_PATH` / `HELPEVENTS_DATA_PATH` environment variables for cloud deployment paths. The team must deploy the app to Cloud Functions or document why Cloud Run was selected as the primary serving target if Cloud Functions is not used.
 
-- [ ] **Comprehensive README**: Update README with:
-  - [ ] Architecture diagram showing all components
-  - [ ] CI/CD pipeline overview
-  - [ ] Deployment instructions for each option (Cloud Run, Cloud Functions, HuggingFace)
-  - [ ] GCP setup and configuration guide
-  - [ ] How to invoke deployed models
-  - [ ] Monitoring and troubleshooting guide
-  - [ ] Cost estimation and optimization tips
-- [ ] **Deployment Guide**: Create detailed DEPLOYMENT.md with:
-  - [ ] Step-by-step GCP setup instructions
-  - [ ] Cloud Run deployment procedure
-  - [ ] Cloud Functions configuration
-  - [ ] Environment variables and secrets management
-  - [ ] Rollback procedures
-- [ ] **API Documentation**: Document all endpoints with:
-  - [ ] Request/response schemas
-  - [ ] Example curl/Python requests
-  - [ ] Error codes and messages
-- [ ] **Architecture Documentation**: Include diagrams showing:
-  - [ ] Data pipeline
-  - [ ] Training pipeline
-  - [ ] Inference/serving architecture
-  - [ ] CI/CD workflow
-- [ ] **Screenshots/Demos**: Add:
-  - [ ] Cloud Run dashboard screenshot
-  - [ ] Monitoring dashboard screenshot
-  - [ ] Streamlit/Gradio app screenshot
-  - [ ] API response example
-  - [ ] CML workflow output sample
-- [ ] **Troubleshooting Guide**: Document solutions for:
-  - [ ] Common deployment errors
-  - [ ] Authentication issues
-  - [ ] Performance problems
-  - [ ] Cost overruns
-- [ ] **Resource Cleanup Reminder**: Create CLEANUP.md with instructions for:
-  - [ ] Deleting GCP resources (VMs, databases, etc.)
-  - [ ] Cleaning up Cloud Storage buckets
-  - [ ] Disabling APIs to avoid charges
-  - [ ] Cost monitoring recommendations
-- [ ] **Contributing Guide Update**: Update CONTRIBUTING.md with:
-  - [ ] CI/CD requirements
-  - [ ] Testing requirements for PRs
-  - [ ] Deployment process documentation
-- [ ] **Changelog**: Maintain CHANGELOG.md documenting releases and deployments
+- [ ] **3.4 Dockerize & Deploy with GCP Cloud Run**
+  - File/dir reference: `dockerfiles/Dockerfile`, `docker-compose.yaml`, `.github/workflows/docker-build.yml`, and `api/main.py`.
+  - Live service URL: `TODO: paste Cloud Run URL`.
+  - Sample request/response evidence: `docs/screenshots/cloud-run-service.png`.
+  - Explanation: Cloud Run should use the Phase 2 Docker image with the serving command `uvicorn api.main:app --host 0.0.0.0 --port 8000`. This makes the trained model reachable through HTTP while preserving the same reproducible container base used for training.
 
----
+## 4. Interactive UI
 
-> **Checklist:** Use this as a guide for documenting your Phase 3 deliverables.
+- [x] **4.1 Streamlit app on Hugging Face Spaces**
+  - File/dir reference: `app/streamlit_app.py` and `.github/workflows/huggingface-space.yml`.
+  - Hugging Face Space URL: `TODO: paste Space URL`.
+  - Screenshot evidence: `docs/screenshots/huggingface-space.png`.
+  - Explanation: The Streamlit app lets a non-technical user enter ticket characteristics and calls the deployed FastAPI backend for a prediction. The Hugging Face workflow syncs `app/streamlit_app.py` to a Space when `HF_TOKEN` and `HF_SPACE` secrets are configured.
+
+## 5. End-to-End Demo Recording
+
+- [ ] **5.1 Recording in main README**
+  - File/dir reference: `README.md`.
+  - Recording link/path for graders: `TODO: paste Loom/YouTube/repo video link`.
+  - Explanation: The final README must embed or link a 2-5 minute narrated or captioned walkthrough near the top. The recording should show the Hugging Face UI, a realistic ticket input, the prediction result, and preferably evidence that the request reached the Cloud Run/FastAPI backend.
+
+## 6. Documentation, Repository Updates & Cleanup
+
+- [x] **6.1 Comprehensive README**
+  - File/dir reference: `README.md`.
+  - Screenshot evidence: `docs/screenshots/readme-demo-embed.png`.
+  - Explanation: The README now includes a Phase 3 section with CI/CD, Docker, CML, Cloud Run, Hugging Face, and demo-recording guidance. It remains the main front door for reviewers and links to this evidence report.
+
+- [x] **6.2 PHASE3.md**
+  - File/dir reference: `PHASE3.md`.
+  - Screenshot evidence: this file rendered in GitHub after screenshots and URLs are added.
+  - Explanation: This document is structured around the course template and includes repo paths, required screenshots, and concise explanations. Items that require live cloud execution remain unchecked until the team captures real evidence.
+
+- [ ] **6.3 GCP Resource Cleanup**
+  - File/dir reference: `docs/PHASE3_HANDOFF.md`.
+  - Screenshot evidence: `docs/screenshots/gcp-cleanup.png`.
+  - Explanation: After deployment screenshots and the demo recording are captured, delete or stop billable GCP resources such as Cloud Run services, Cloud Functions, Vertex/Compute jobs, buckets, and registry images that are no longer needed. Add a dated cleanup screenshot here so graders can see the team avoided lingering cloud costs.
+
+## Final Submission Checklist
+
+- [ ] Add all screenshots under `docs/screenshots/`.
+- [ ] Paste live Cloud Run, Cloud Functions, and Hugging Face URLs above.
+- [ ] Embed or link the 2-5 minute demo recording near the top of `README.md`.
+- [ ] Run GitHub Actions after secrets are configured and capture green workflow evidence.
+- [ ] Capture GCP cleanup evidence after the demo is recorded.

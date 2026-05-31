@@ -2,6 +2,14 @@
 
 Predict SLA violations from event sequences
 
+## Phase 3 Demo Recording
+
+> **TODO before final submission:** Embed or link the required 2-5 minute narrated/captioned end-to-end demo here.
+>
+> Recording link: `TODO: paste Loom, YouTube, Hugging Face, or repo video link`
+>
+> The recording should show the Hugging Face Streamlit app, a realistic support-ticket input, the SLA-risk prediction, and evidence that the request reached the deployed FastAPI backend on GCP Cloud Run or Cloud Functions.
+
 ## Team Information
 
 - **Project Lead:** Ted Strall (tstrall@depaul.edu)
@@ -27,6 +35,10 @@ The raw dataset comes from a public Mendeley repository and contains over 150,00
 The classifier is a `RandomForestClassifier` wrapped in a scikit-learn `Pipeline` with a `StandardScaler` preprocessing stage. Random Forest was chosen because it handles mixed feature types naturally, is robust to outliers, and produces well-calibrated probability estimates that are critical for ranking tickets by violation risk. We evaluate with accuracy, precision, recall, F1, and ROC-AUC.
 
 The key third-party framework integrated into this project is **MLflow**. Every training run logs its hyperparameters, evaluation metrics, and the serialized model artifact to a local MLflow tracking server. This makes experiments fully reproducible and comparable - a core MLOps requirement.
+
+The trained Random Forest's feature-importance analysis supports the modeling story: ticket workflow intensity and interaction features are among the strongest predictors after removing leakage-prone duration fields.
+
+![Random Forest feature importance plot](reports/figures/feature_importance.png)
 
 ### Expected Impact
 
@@ -56,16 +68,12 @@ SLA_violation = 1 if resolution_time > SLA_threshold
 
 ## Architecture Diagram
 
-```text
-Raw Ticket Events
-↓
-Data Preprocessing (group by ticket_id)
-↓
-Feature Engineering (sequence → features)
-↓
-Model Training (scikit-learn)
-↓
-Evaluation + MLflow Tracking
+```mermaid
+flowchart TD
+    raw[Raw Ticket Events] --> prep[Data Preprocessing<br/>group by ticket_id]
+    prep --> features[Feature Engineering<br/>sequence to features]
+    features --> train[Model Training<br/>scikit-learn]
+    train --> eval[Evaluation and MLflow Tracking]
 ```
 
 ## Phase Deliverables
@@ -177,6 +185,16 @@ Ad-hoc parameter overrides:
 python -m se_489_mlops_project.train_model model.n_estimators=200 training.test_size=0.3
 ```
 
+### MLflow Experiment Tracking
+
+Training runs log parameters, metrics, and model artifacts to the local `mlruns/` tracking directory. To view the logged runs and compare experiments, launch the MLflow UI from the repository root:
+
+```bash
+mlflow ui --backend-store-uri ./mlruns
+```
+
+Then open `http://127.0.0.1:5000` in a browser. Screenshots of the completed comparison runs are checked in under `reports/screenshots/`.
+
 ### Logging
 
 Logging uses `rich` for colored terminal output — log levels are color-coded and timestamps are included. Logs also write to `logs/app.log` with rotation at 5 MB (3 backups kept). If a run crashes, the traceback is formatted by `rich` with local variable values shown.
@@ -211,6 +229,18 @@ Explore the binary profile interactively:
 python -m pstats reports/profiling/train_profile.prof
 ```
 
+For scikit-learn line-level CPU and memory profiling, run the Scalene wrapper:
+
+```bash
+python scripts/profile_with_scalene.py
+```
+
+Scalene writes its text report to:
+
+```text
+reports/profiling/scalene_training_profile.txt
+```
+
 ### Resource Monitoring
 
 Track CPU and RAM during a training run:
@@ -236,6 +266,109 @@ The trained model artifact is saved to:
 ```text
 models/model.joblib
 ```
+
+## Phase 3: Continuous ML and Deployment
+
+Phase 3 turns the tracked training pipeline into an automated and reachable system. The repository now includes GitHub Actions workflows for CI, Docker image building, CML pull-request reporting, and Hugging Face Space sync:
+
+```text
+.github/workflows/ci.yml
+.github/workflows/docker-build.yml
+.github/workflows/cml.yml
+.github/workflows/huggingface-space.yml
+```
+
+The deployed serving path uses the FastAPI app in `api/main.py`. It exposes:
+
+- `GET /` health check
+- `GET /sample` sample request payload from processed data
+- `POST /predict` SLA violation prediction
+
+### Dockerized FastAPI Service Evidence
+
+The FastAPI service has been packaged as a Docker image and verified locally with the trained model and processed data mounted into the container.
+
+![Docker image built for HelpEvents API](docs/screenshots/docker-image.png)
+
+![FastAPI service running in Docker](docs/screenshots/docker-xterm.png)
+
+The API exposes interactive Swagger documentation at `/docs`:
+
+![Swagger documentation for HelpEvents API](docs/screenshots/swagger.png)
+
+The containerized `/predict` endpoint returns a successful SLA prediction response:
+
+![Successful Dockerized prediction response](docs/screenshots/predict.png)
+
+### GCP Cloud Run Deployment Evidence
+
+The Docker image was pushed to Google Artifact Registry and deployed as a public Cloud Run service at:
+
+```text
+https://helpevents-api-263032795187.us-central1.run.app
+```
+
+![HelpEvents API image in Google Artifact Registry](docs/screenshots/gc-artifactrepo.png)
+
+![HelpEvents API deployed on Google Cloud Run](docs/screenshots/gc-cloudrun.png)
+
+The deployed Cloud Run API exposes the same FastAPI Swagger documentation:
+
+![Cloud Run Swagger documentation](docs/screenshots/gc-swagger.png)
+
+The public `/predict` endpoint returns a successful SLA prediction response from the deployed service:
+
+![Cloud Run prediction response](docs/screenshots/gc-predict.png)
+
+Run the API locally:
+
+```bash
+make api
+```
+
+Run the API with Docker Compose:
+
+```bash
+docker compose up api
+```
+
+Example prediction request:
+
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d @request.json
+```
+
+The repository includes `request.json` as a checked-in sample payload generated from the processed dataset. A minimal inline request also works:
+
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "features": {
+      "issue_contr_count": 1,
+      "issue_comments_count": 3,
+      "processing_steps": 4,
+      "num_events": 8,
+      "duration_seconds": 3600,
+      "issue_priority": "Medium",
+      "issue_type": "Ticket",
+      "events_per_day": 8,
+      "comments_per_contributor": 3,
+      "is_high_priority": 0,
+      "log_num_events": 2.197224577
+    }
+  }'
+```
+
+The user-facing demo app lives in `app/streamlit_app.py` and is designed for deployment on Hugging Face Spaces. Set `HELPEVENTS_API_URL` in the Space environment to point at the deployed Cloud Run or Cloud Functions backend.
+
+Phase 3 evidence and remaining manual screenshot tasks are tracked in:
+
+- [PHASE3.md](PHASE3.md)
+- [docs/PHASE3_HANDOFF.md](docs/PHASE3_HANDOFF.md)
+- [DEPLOYMENT.md](DEPLOYMENT.md)
 
 
 ## Technology Stack
@@ -267,6 +400,11 @@ models/model.joblib
 
 ### Configuration Management
 - **Hydra** - Config-driven experimentation and parameter overrides
+
+### Deployment and UI
+- **FastAPI** - HTTP prediction service
+- **Uvicorn** - ASGI server for local and Cloud Run serving
+- **Streamlit** - Hugging Face Spaces user interface
 
 
 ## Project Structure
@@ -366,18 +504,33 @@ make format
 # Run tests
 make test
 
+# Serve the FastAPI app locally
+make api
+
 # Clean up build artifacts
 make clean
 
 # Docker operations
 make docker_build
 make docker_run
+make docker_api
 
 # Serve documentation locally
 make docs
 ```
 
 ## Contribution Summary
+
+### Contributions by Phase
+
+| Team Member | Phase 1 | Phase 2 | Phase 3 |
+|---|---|---|---|
+| Ted Strall | Project lead, repo structure, model training pipeline, documentation | Docker, Hydra, MLflow, profiling, monitoring, debugging writeups | FastAPI serving, Dockerized API evidence, deployment documentation |
+| Calvin Au | Dataset review, exploratory analysis support, project documentation review | Experiment comparison review, metric validation, README/PHASE2 review | UI/demo review and deployment evidence support |
+| Seshagiri Kalyana Venkatesh Adavi | Data preprocessing review, feature engineering discussion, model result validation | Monitoring/profiling review, debugging notes, reproducibility checks | Cloud deployment checklist and documentation review |
+| Julisa Delfin | Problem framing, motivation, presentation/report support, documentation review | Logging documentation review, operational evidence review | Demo narrative, screenshot organization, final README review |
+
+### Project Milestones
 
 - [x] Team members assigned - Ted Strall (lead), Calvin Au, Seshagiri Kalyana Venkatesh Adavi, Julisa Delfin
 - [x] Development environment set up - `requirements.txt`, `requirements_dev.txt`, `pyproject.toml`, pre-commit hooks
@@ -391,7 +544,7 @@ make docs
 - [x] Baseline model results documented - ROC-AUC 0.9984, F1 0.9894
 - [x] Evaluation metrics defined - accuracy, precision, recall, F1, ROC-AUC
 - [x] EDA notebook created - `notebooks/01_eda.ipynb` covering distributions, class balance, correlations
-- [x] All tests passing - 7 unit tests covering model fit, predict, save/load, and type safety
+- [x] All tests passing - unit tests cover model fit/predict/save-load, feature engineering, data processing, API normalization, and metrics
 - [x] CI pipeline passing - GitHub Actions running ruff lint, ruff format, mypy, and pytest on every push
 - [x] Code reviewed and merged - `phase1-fixes` branch reviewed and merged via PR
 - [x] Documentation updated - README (450+ word description), PHASE1.md (checklist + baseline results + findings report)
@@ -400,6 +553,7 @@ make docs
 - [x] Experiment config groups added - `configs/experiment/larger_forest.yaml` and `configs/experiment/fast.yaml`
 - [x] Rich logging integrated - colored console output, rotating file handler, formatted tracebacks
 - [x] cProfile training profiler added - `scripts/profile_training.py` with binary and text summary outputs
+- [x] Scalene profiler added - `scripts/profile_with_scalene.py` with line-level CPU and memory report
 - [x] psutil resource monitor added - `scripts/monitor_training.py` tracks CPU/RAM during training runs
 - [x] Debugging documented - pdb/ipdb usage guide and two real debug scenarios in PHASE2.md
 

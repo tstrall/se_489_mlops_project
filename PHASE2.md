@@ -1,7 +1,7 @@
 # PHASE 2: Enhancing ML Operations with Containerization & Monitoring
 
 ## Overview
-Phase 2 adds the operational layer on top of the Phase 1 model — Docker for consistent environments, Hydra for config management, MLflow for experiment tracking, Rich logging, cProfile for profiling, and psutil-based monitoring. The goal was to make the pipeline something you can hand off to a teammate and have it actually work on their machine.
+Phase 2 adds the operational layer on top of the Phase 1 model — Docker for consistent environments, Hydra for config management, MLflow for experiment tracking, Rich logging, cProfile and Scalene for profiling, and psutil-based monitoring. The goal was to make the pipeline something you can hand off to a teammate and have it actually work on their machine.
 
 ---
 
@@ -140,11 +140,13 @@ Example summary output:
 - [x] **CPU Profiling**: `scripts/profile_training.py` profiles the training pipeline with cProfile
 - [x] **Profiling Results**: Top-25 hotspots saved to `reports/profiling/train_profile_summary.txt`
 - [x] **Profiling Binary**: Full profile saved to `reports/profiling/train_profile.prof` for interactive inspection
+- [x] **Scikit-learn Profiling**: `scripts/profile_with_scalene.py` profiles the same training workload with Scalene for line-level CPU and memory evidence
+- [x] **Scalene Report**: Text report saved to `reports/profiling/scalene_training_profile.txt`
 - [x] **Optimization 1**: Identified that `pd.get_dummies` dominates pre-model time; one-hot encoding is applied once at preprocessing rather than per-predict
 - [x] **Optimization 2**: `RandomForestClassifier` uses `n_jobs=-1` to parallelize tree construction across all CPU cores
 - [x] **Optimization Documentation**: Findings documented below
-- [ ] **Memory Profiling**: Optional; not required for current pipeline size
-- [ ] **GPU Profiling**: Not applicable; project uses scikit-learn on CPU
+- [x] **Memory Profiling**: Scalene captures line-level memory peaks for the scikit-learn training path
+- [x] **GPU Profiling Not Applicable**: Project uses scikit-learn on CPU, so Scalene is the appropriate framework-level profiling evidence
 
 ### Running the Profiler
 
@@ -167,9 +169,23 @@ python -m pstats reports/profiling/train_profile.prof
 # at the prompt: stats 25
 ```
 
+### Running Scalene for scikit-learn Profiling
+
+Because this project uses scikit-learn instead of PyTorch or TensorFlow, Scalene is the framework-appropriate profiler for line-level CPU and memory evidence. The wrapper below runs the same training workload used by the cProfile script and saves a compact text report:
+
+```bash
+python scripts/profile_with_scalene.py
+```
+
+Output:
+
+```text
+reports/profiling/scalene_training_profile.txt
+```
+
 ### Profiling Findings
 
-Most of the time is in `RandomForestClassifier.fit` — roughly 70% of total runtime, which is expected. We already have `n_jobs=-1` so it uses all cores. The next biggest cost is `pd.get_dummies` but that's a one-time hit at data prep, not something that runs at inference. `StandardScaler` barely shows up.
+Most of the time is in `RandomForestClassifier.fit`, joblib worker coordination, and sklearn import/model setup, which is expected for this CPU-bound classical ML pipeline. We already have `n_jobs=-1` so Random Forest uses all cores. Scalene reported peak memory around 217 MB for the profiled training path, with the highest memory lines tied to loading the processed dataframe, one-hot encoding, and fitting the model. `StandardScaler` barely shows up.
 
 At 66k rows there's nothing obviously worth optimizing. If the dataset gets significantly larger, the thing to look at first would be replacing `pd.get_dummies` with an `OrdinalEncoder` inside the sklearn pipeline so the encoding is properly fitted once rather than done manually before training.
 
@@ -194,6 +210,16 @@ At 66k rows there's nothing obviously worth optimizing. If the dataset gets sign
 - Precision: 0.9952
 - Recall: 0.9818
 - F1 Score: 0.9884
+
+### Viewing MLflow Runs
+
+MLflow stores local tracking data under `./mlruns`. A teammate can launch the UI from the repository root with:
+
+```bash
+mlflow ui --backend-store-uri ./mlruns
+```
+
+Then open `http://127.0.0.1:5000` to compare runs, inspect logged parameters, and download model artifacts.
 
 ### MLflow Experiment Comparison
 

@@ -27,4 +27,6 @@ COPY . .
 # Install the package
 RUN pip install --no-cache-dir -e .
 
-ENTRYPOINT ["python", "-m", "se_489_mlops_project.train_model"]
+EXPOSE 8000
+
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]

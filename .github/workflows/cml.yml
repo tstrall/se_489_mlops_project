@@ -1,0 +1,86 @@
+name: CML Model Report
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  cml:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -e .
+
+      - name: Pull DVC data if configured
+        if: hashFiles('.dvc/config', 'dvc.yaml', '*.dvc') != ''
+        run: |
+          pip install "dvc[gdrive,s3,gs]>=3.0"
+          dvc pull
+
+      - name: Train fast Hydra experiment
+        run: |
+          mkdir -p reports/cml
+          if [ -f data/processed/processed_data.csv ]; then
+            python -m se_489_mlops_project.train_model +experiment=fast > reports/cml/train.log 2>&1
+          else
+            echo "data/processed/processed_data.csv is missing. Configure DVC or upload CI data before enabling full CML training." > reports/cml/train.log
+          fi
+
+      - name: Build CML report
+        run: |
+          {
+            echo "## HelpEvents CML Report"
+            echo
+            echo "- Commit: \`${GITHUB_SHA}\`"
+            echo "- Workflow: \`${GITHUB_WORKFLOW}\`"
+            echo "- Hydra config: \`+experiment=fast\`"
+            echo
+            echo "### Training Log"
+            echo
+            echo '```text'
+            tail -n 80 reports/cml/train.log
+            echo '```'
+          } > reports/cml/report.md
+
+      - name: Set up Node for CML
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install CML native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            libcairo2-dev \
+            libgif-dev \
+            libjpeg-dev \
+            libpango1.0-dev \
+            libpixman-1-dev \
+            librsvg2-dev \
+            pkg-config
+
+      - name: Set up CML
+        uses: iterative/setup-cml@v2
+
+      - name: Comment CML report
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cml comment create reports/cml/report.md

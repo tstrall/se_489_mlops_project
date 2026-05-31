@@ -1,33 +1,31 @@
-Sun May 10 19:37:40 2026    reports/profiling/train_profile.prof
-
-         9635139 function calls (9408426 primitive calls) in 8.002 seconds
+         7110342 function calls (7007791 primitive calls) in 7.031 seconds
 
    Ordered by: cumulative time
-   List reduced from 19675 to 25 due to restriction <25>
+   List reduced from 6289 to 25 due to restriction <25>
 
    ncalls  tottime  percall  cumtime  percall filename:lineno(function)
-      441    0.008    0.000   13.054    0.030 __init__.py:1(<module>)
-   5025/1    0.132    0.000    5.467    5.467 {built-in method builtins.exec}
-      2/1    0.000    0.000    5.357    5.357 <string>:1(<module>)
-      2/1    0.000    0.000    5.357    5.357 <frozen runpy>:201(run_module)
-      2/1    0.000    0.000    5.357    5.357 <frozen runpy>:65(_run_code)
-      2/1    0.000    0.000    5.264    5.264 train_model.py:1(<module>)
-      2/1    0.000    0.000    5.215    5.215 main.py:80(decorated_main)
-        1    0.001    0.001    5.214    5.214 utils.py:306(_run_hydra)
-        1    0.000    0.000    4.363    4.363 utils.py:430(_run_app)
-        3    0.000    0.000    4.115    1.372 utils.py:218(run_and_report)
-        1    0.000    0.000    4.114    4.114 utils.py:458(<lambda>)
-        1    0.000    0.000    4.092    4.092 hydra.py:98(run)
-        1    0.000    0.000    4.092    4.092 utils.py:99(run_job)
-        1    0.001    0.001    4.092    4.092 train_model.py:138(main)
-        1    0.000    0.000    4.091    4.091 train_model.py:31(train)
-  3250/91    0.006    0.000    3.481    0.038 <frozen importlib._bootstrap_external>:989(exec_module)
-  3720/96    0.017    0.000    3.480    0.036 <frozen importlib._bootstrap>:1349(_find_and_load)
-  3635/59    0.012    0.000    3.478    0.059 <frozen importlib._bootstrap>:1304(_find_and_load_unlocked)
- 8134/147    0.050    0.000    3.476    0.024 <frozen importlib._bootstrap>:480(_call_with_frames_removed)
-  3461/30    0.009    0.000    3.472    0.116 <frozen importlib._bootstrap>:911(_load_unlocked)
- 1269/152    0.002    0.000    2.953    0.019 {built-in method builtins.__import__}
-      306    0.002    0.000    2.910    0.010 parallel.py:1670(_get_outputs)
-        1    0.000    0.000    2.798    2.798 __init__.py:379(log_model)
-        1    0.000    0.000    2.798    2.798 model.py:1058(log)
-        1    0.000    0.000    2.710    2.710 __init__.py:175(save_model)
+      2/1    0.001    0.001    7.022    7.022 /home/ted/dev/se_489_mlops_project/scripts/profile_training.py:36(_run_training)
+      184    0.007    0.000    6.463    0.035 /usr/lib/python3.12/selectors.py:402(select)
+   1444/5    0.025    0.000    5.149    1.030 <frozen importlib._bootstrap>:1349(_find_and_load)
+   1404/5    0.009    0.000    5.148    1.030 <frozen importlib._bootstrap>:1304(_find_and_load_unlocked)
+   3293/9    0.003    0.000    5.148    0.572 <frozen importlib._bootstrap>:480(_call_with_frames_removed)
+   1376/5    0.007    0.000    5.148    1.030 <frozen importlib._bootstrap>:911(_load_unlocked)
+   1168/5    0.003    0.000    5.147    1.029 <frozen importlib._bootstrap_external>:989(exec_module)
+   1494/5    0.043    0.000    5.147    1.029 {built-in method builtins.exec}
+      204    0.002    0.000    4.887    0.024 /home/ted/dev/se_489_mlops_project/.venv/lib/python3.12/site-packages/joblib/parallel.py:1670(_get_outputs)
+   692/46    0.001    0.000    4.362    0.095 {built-in method builtins.__import__}
+      370    0.010    0.000    3.290    0.009 /home/ted/dev/se_489_mlops_project/.venv/lib/python3.12/site-packages/scalene/scalene_profiler.py:679(cpu_signal_handler)
+  608/567    0.002    0.000    3.272    0.006 /home/ted/dev/se_489_mlops_project/.venv/lib/python3.12/site-packages/scalene/scalene_profiler.py:1096(should_trace)
+  593/558    0.023    0.000    3.267    0.006 /home/ted/dev/se_489_mlops_project/.venv/lib/python3.12/site-packages/scalene/scalene_profiler.py:1147(_passes_exclusion_rules)
+      369    0.060    0.000    3.189    0.009 /home/ted/dev/se_489_mlops_project/.venv/lib/python3.12/site-packages/scalene/scalene_utility.py:58(compute_frames_to_record)
+        1    0.000    0.000    3.169    3.169 /home/ted/dev/se_489_mlops_project/.venv/lib/python3.12/site-packages/sklearn/__init__.py:1(<module>)
+        1    0.000    0.000    3.167    3.167 /home/ted/dev/se_489_mlops_project/.venv/lib/python3.12/site-packages/sklearn/base.py:1(<module>)
+        1    0.000    0.000    3.164    3.164 /home/ted/dev/se_489_mlops_project/.venv/lib/python3.12/site-packages/sklearn/utils/__init__.py:1(<module>)
+        1    0.000    0.000    3.157    3.157 /home/ted/dev/se_489_mlops_project/.venv/lib/python3.12/site-packages/sklearn/utils/_chunking.py:1(<module>)
+        1    0.000    0.000    3.122    3.122 /home/ted/dev/se_489_mlops_project/.venv/lib/python3.12/site-packages/sklearn/utils/_param_validation.py:1(<module>)
+241149/225863    0.261    0.000    2.820    0.000 /home/ted/dev/se_489_mlops_project/.venv/lib/python3.12/site-packages/scalene/scalene_utility.py:327(wrapped)
+        1    0.000    0.000    2.274    2.274 /home/ted/dev/se_489_mlops_project/.venv/lib/python3.12/site-packages/sklearn/utils/validation.py:1(<module>)
+ 1549/819    0.009    0.000    2.208    0.003 {method 'acquire' of '_thread.lock' objects}
+       39    0.000    0.000    2.208    0.057 /usr/lib/python3.12/threading.py:1153(_wait_for_tstate_lock)
+        5    0.000    0.000    2.208    0.442 /usr/lib/python3.12/threading.py:1115(join)
+ 1657/994    0.006    0.000    2.125    0.002 <frozen importlib._bootstrap>:1390(_handle_fromlist)

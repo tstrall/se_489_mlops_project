@@ -1,0 +1,39 @@
+name: Hugging Face Space Sync
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "app/**"
+      - ".github/workflows/huggingface-space.yml"
+      - "requirements.txt"
+  workflow_dispatch:
+
+jobs:
+  sync-space:
+    runs-on: ubuntu-latest
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      HF_SPACE: ${{ secrets.HF_SPACE }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip when Hugging Face secrets are not configured
+        if: env.HF_TOKEN == '' || env.HF_SPACE == ''
+        run: |
+          echo "HF_TOKEN and HF_SPACE are required to sync the Space."
+
+      - name: Push app to Hugging Face Space
+        if: env.HF_TOKEN != '' && env.HF_SPACE != ''
+        run: |
+          git clone "https://oauth2:${HF_TOKEN}@huggingface.co/spaces/${HF_SPACE}" hf-space
+          cp app/streamlit_app.py hf-space/app.py
+          cp app/requirements.txt hf-space/requirements.txt
+          cd hf-space
+          git config user.email "actions@github.com"
+          git config user.name "github-actions"
+          git add app.py requirements.txt
+          git commit -m "Sync HelpEvents Streamlit app from GitHub" || exit 0
+          git push
