@@ -262,6 +262,22 @@ The deployed serving path uses the FastAPI app in `api/main.py`. It exposes:
 - `GET /sample` sample request payload from processed data
 - `POST /predict` SLA violation prediction
 
+### Dockerized FastAPI Service Evidence
+
+The FastAPI service has been packaged as a Docker image and verified locally with the trained model and processed data mounted into the container.
+
+![Docker image built for HelpEvents API](docs/screenshots/docker-image.png)
+
+![FastAPI service running in Docker](docs/screenshots/docker-xterm.png)
+
+The API exposes interactive Swagger documentation at `/docs`:
+
+![Swagger documentation for HelpEvents API](docs/screenshots/swagger.png)
+
+The containerized `/predict` endpoint returns a successful SLA prediction response:
+
+![Successful Dockerized prediction response](docs/screenshots/predict.png)
+
 Run the API locally:
 
 ```bash
@@ -275,6 +291,14 @@ docker compose up api
 ```
 
 Example prediction request:
+
+```bash
+curl -X POST http://localhost:8000/predict \
+  -H "Content-Type: application/json" \
+  -d @request.json
+```
+
+The repository includes `request.json` as a checked-in sample payload generated from the processed dataset. A minimal inline request also works:
 
 ```bash
 curl -X POST http://localhost:8000/predict \
