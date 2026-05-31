@@ -36,6 +36,10 @@ The classifier is a `RandomForestClassifier` wrapped in a scikit-learn `Pipeline
 
 The key third-party framework integrated into this project is **MLflow**. Every training run logs its hyperparameters, evaluation metrics, and the serialized model artifact to a local MLflow tracking server. This makes experiments fully reproducible and comparable - a core MLOps requirement.
 
+The trained Random Forest's feature-importance analysis supports the modeling story: ticket workflow intensity and interaction features are among the strongest predictors after removing leakage-prone duration fields.
+
+![Random Forest feature importance plot](reports/figures/feature_importance.png)
+
 ### Expected Impact
 
 A deployed version of this model would allow a support team to flag high-risk tickets in real time and prioritize them for escalation, directly reducing the rate of SLA violations. Success is measured primarily by ROC-AUC (ability to rank tickets by risk) and recall (minimizing missed violations).
@@ -64,16 +68,12 @@ SLA_violation = 1 if resolution_time > SLA_threshold
 
 ## Architecture Diagram
 
-```text
-Raw Ticket Events
-↓
-Data Preprocessing (group by ticket_id)
-↓
-Feature Engineering (sequence → features)
-↓
-Model Training (scikit-learn)
-↓
-Evaluation + MLflow Tracking
+```mermaid
+flowchart TD
+    raw[Raw Ticket Events] --> prep[Data Preprocessing<br/>group by ticket_id]
+    prep --> features[Feature Engineering<br/>sequence to features]
+    features --> train[Model Training<br/>scikit-learn]
+    train --> eval[Evaluation and MLflow Tracking]
 ```
 
 ## Phase Deliverables
@@ -185,6 +185,16 @@ Ad-hoc parameter overrides:
 python -m se_489_mlops_project.train_model model.n_estimators=200 training.test_size=0.3
 ```
 
+### MLflow Experiment Tracking
+
+Training runs log parameters, metrics, and model artifacts to the local `mlruns/` tracking directory. To view the logged runs and compare experiments, launch the MLflow UI from the repository root:
+
+```bash
+mlflow ui --backend-store-uri ./mlruns
+```
+
+Then open `http://127.0.0.1:5000` in a browser. Screenshots of the completed comparison runs are checked in under `reports/screenshots/`.
+
 ### Logging
 
 Logging uses `rich` for colored terminal output — log levels are color-coded and timestamps are included. Logs also write to `logs/app.log` with rotation at 5 MB (3 backups kept). If a run crashes, the traceback is formatted by `rich` with local variable values shown.
@@ -217,6 +227,18 @@ Explore the binary profile interactively:
 
 ```bash
 python -m pstats reports/profiling/train_profile.prof
+```
+
+For scikit-learn line-level CPU and memory profiling, run the Scalene wrapper:
+
+```bash
+python scripts/profile_with_scalene.py
+```
+
+Scalene writes its text report to:
+
+```text
+reports/profiling/scalene_training_profile.txt
 ```
 
 ### Resource Monitoring
@@ -479,6 +501,17 @@ make docs
 
 ## Contribution Summary
 
+### Contributions by Phase
+
+| Team Member | Phase 1 | Phase 2 | Phase 3 |
+|---|---|---|---|
+| Ted Strall | Project lead, repo structure, model training pipeline, documentation | Docker, Hydra, MLflow, profiling, monitoring, debugging writeups | FastAPI serving, Dockerized API evidence, deployment documentation |
+| Calvin Au | Dataset review, exploratory analysis support, project documentation review | Experiment comparison review, metric validation, README/PHASE2 review | UI/demo review and deployment evidence support |
+| Seshagiri Kalyana Venkatesh Adavi | Data preprocessing review, feature engineering discussion, model result validation | Monitoring/profiling review, debugging notes, reproducibility checks | Cloud deployment checklist and documentation review |
+| Julisa Delfin | Problem framing, motivation, presentation/report support, documentation review | Logging documentation review, operational evidence review | Demo narrative, screenshot organization, final README review |
+
+### Project Milestones
+
 - [x] Team members assigned - Ted Strall (lead), Calvin Au, Seshagiri Kalyana Venkatesh Adavi, Julisa Delfin
 - [x] Development environment set up - `requirements.txt`, `requirements_dev.txt`, `pyproject.toml`, pre-commit hooks
 - [x] Project structure created - Cookiecutter MLOps `src/` layout with `data/`, `models/`, `tests/`, `docs/`, `notebooks/`
@@ -491,7 +524,7 @@ make docs
 - [x] Baseline model results documented - ROC-AUC 0.9984, F1 0.9894
 - [x] Evaluation metrics defined - accuracy, precision, recall, F1, ROC-AUC
 - [x] EDA notebook created - `notebooks/01_eda.ipynb` covering distributions, class balance, correlations
-- [x] All tests passing - 7 unit tests covering model fit, predict, save/load, and type safety
+- [x] All tests passing - unit tests cover model fit/predict/save-load, feature engineering, data processing, API normalization, and metrics
 - [x] CI pipeline passing - GitHub Actions running ruff lint, ruff format, mypy, and pytest on every push
 - [x] Code reviewed and merged - `phase1-fixes` branch reviewed and merged via PR
 - [x] Documentation updated - README (450+ word description), PHASE1.md (checklist + baseline results + findings report)
@@ -500,6 +533,7 @@ make docs
 - [x] Experiment config groups added - `configs/experiment/larger_forest.yaml` and `configs/experiment/fast.yaml`
 - [x] Rich logging integrated - colored console output, rotating file handler, formatted tracebacks
 - [x] cProfile training profiler added - `scripts/profile_training.py` with binary and text summary outputs
+- [x] Scalene profiler added - `scripts/profile_with_scalene.py` with line-level CPU and memory report
 - [x] psutil resource monitor added - `scripts/monitor_training.py` tracks CPU/RAM during training runs
 - [x] Debugging documented - pdb/ipdb usage guide and two real debug scenarios in PHASE2.md
 
