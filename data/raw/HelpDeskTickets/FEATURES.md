@@ -9,10 +9,10 @@ masked.
 The issue_proj feature in issues.csv and issues_snapshot.csv defines an issue related project. It is defined by the
 helpdesk team for internal and external projects. For the external projects, it is more than six characters that
 follows a pattern of having two characters as the country code, a product key, and a 3+ characters client code.
-For example, ZZ99ABC is key for product 99 for client ABC in country ZZ. 
+For example, ZZ99ABC is key for product 99 for client ABC in country ZZ.
 It was found there were 18 unique countries codes for the external projects, and those codes were mapped while masking
 the feature with C00 to C17, so in the previous example, if ZZ was mapped to C03, then the project code will be
-C0378XPS, assuming that 99ABC was masked to 78XPS. 
+C0378XPS, assuming that 99ABC was masked to 78XPS.
 
 ## DataSets
 
@@ -87,7 +87,7 @@ The messages are broken into utterances (sentences).
 |-------------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------|
 | issuedid    | numeric   | The utterance's issue ID.                                                                                                                        |
 | id          | numeric   | The comment ID this utterance was extracted from.                                                                                                |
-| comment_seq | numeric   | The sequence of this comment in the related issue. Starting from 0.                                                                              | 
+| comment_seq | numeric   | The sequence of this comment in the related issue. Starting from 0.                                                                              |
 | utr_seq     | numeric   | The sequence of this utterance in the comment text. Starting from 0.                                                                             |
 | # author    | text      | The author of this utterance, which will be the same as the author of the related comment that could be the reporter (customer) or the assignee. |
 | created     | timestamp | The related comment creation time.                                                                                                               |

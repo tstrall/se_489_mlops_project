@@ -4,10 +4,6 @@ Place Phase 3 evidence screenshots here before the final submission.
 
 Recommended filenames still needed before final submission:
 
-- `ci-green-run.png`
-- `precommit-run.png`
-- `cml-pr-comment.png`
-- `gcp-training-job.png`
 - `readme-demo-embed.png`
 - `gcp-cleanup.png`
 
@@ -23,3 +19,8 @@ Current evidence filenames in use:
 - `gc-predict.png`
 - `huggingface-space.png`
 - `huggingface-predict.png`
+- `ci-green-run.png`
+- `local-pytest-run.png`
+- `precommit-run.png`
+- `cml-pr-comment.png`
+- `gcp-training-job.png`

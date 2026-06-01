@@ -92,13 +92,13 @@ docs/screenshots/gc-artifactrepo.png
 
 ### Training Job
 
-Run the same image as a Vertex AI custom job or Compute Engine job:
+The same Artifact Registry image was run as a Compute Engine container VM named `helpevents-training-job` in `us-central1-a`:
 
 ```bash
-python -m se_489_mlops_project.train_model +experiment=fast
+python -m se_489_mlops_project.train_model experiment=fast
 ```
 
-Use data from a GCP bucket or a mounted volume, and write the trained `model.joblib` artifact to a bucket or mounted artifact directory.
+The job completed successfully with ROC-AUC 0.9975, accuracy 0.9804, and F1 0.9860. The VM should be deleted after screenshot capture to avoid compute charges.
 
 Screenshot:
 

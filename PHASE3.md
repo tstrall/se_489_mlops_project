@@ -49,10 +49,10 @@ Phase 3 adds CI/CD automation, CML reporting, cloud deployment evidence, and an 
   - Screenshot evidence: `docs/screenshots/gc-artifactrepo.png`.
   - Explanation: The FastAPI Docker image was built and pushed to Google Artifact Registry under the `helpevents` repository. This provides a managed container artifact that Cloud Run can deploy from the same image tested locally.
 
-- [ ] **3.2 Custom Training Job on GCP**
-  - File/dir reference: `dockerfiles/Dockerfile`, `configs/config.yaml`, `configs/experiment/fast.yaml`, and `docs/PHASE3_HANDOFF.md`.
+- [x] **3.2 Custom Training Job on GCP**
+  - File/dir reference: `dockerfiles/Dockerfile`, `configs/config.yaml`, `configs/experiment/fast.yaml`, and `src/se_489_mlops_project/train_model.py`.
   - Screenshot evidence: `docs/screenshots/gcp-training-job.png`.
-  - Explanation: The training container can run `python -m se_489_mlops_project.train_model +experiment=fast` against data mounted or copied from a GCP bucket. The team must submit the custom job through Vertex AI or Compute Engine, store model outputs in GCS or a mounted artifact path, and capture the completed-job screenshot.
+  - Explanation: The same Artifact Registry image used for serving was also launched as a Compute Engine container VM named `helpevents-training-job` in `us-central1-a`. It ran `python -m se_489_mlops_project.train_model experiment=fast` and produced a successful training log with ROC-AUC 0.9975, accuracy 0.9804, and F1 0.9860 before the VM was cleaned up.
 
 - [ ] **3.3 FastAPI + GCP Cloud Functions**
   - File/dir reference: `api/main.py` and `docs/PHASE3_HANDOFF.md`.
@@ -85,7 +85,7 @@ Phase 3 adds CI/CD automation, CML reporting, cloud deployment evidence, and an 
 
 - [x] **6.1 Comprehensive README**
   - File/dir reference: `README.md`.
-  - Screenshot evidence: `docs/screenshots/readme-demo-embed.png`.
+  - Screenshot evidence: Pending final demo screenshot: `docs/screenshots/readme-demo-embed.png`.
   - Explanation: The README now includes a Phase 3 section with CI/CD, Docker, CML, Cloud Run, Hugging Face, and demo-recording guidance. It remains the main front door for reviewers and links to this evidence report.
 
 - [x] **6.2 PHASE3.md**
@@ -100,8 +100,8 @@ Phase 3 adds CI/CD automation, CML reporting, cloud deployment evidence, and an 
 
 ## Final Submission Checklist
 
-- [ ] Add all screenshots under `docs/screenshots/`.
+- [x] Add current CI, CML, GCP, Docker, and Hugging Face screenshots under `docs/screenshots/`.
 - [x] Paste live Cloud Run and Hugging Face URLs above.
 - [ ] Embed or link the 2-5 minute demo recording near the top of `README.md`.
-- [ ] Run GitHub Actions after secrets are configured and capture green workflow evidence.
+- [x] Run GitHub Actions after secrets are configured and capture green workflow evidence.
 - [ ] Capture GCP cleanup evidence after the demo is recorded.
