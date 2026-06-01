@@ -41,6 +41,7 @@ Phase 3 adds CI/CD automation, CML reporting, cloud deployment evidence, and an 
   - File/dir reference: `.github/workflows/cml.yml`, `configs/experiment/fast.yaml`, and `src/se_489_mlops_project/train_model.py`.
   - Screenshot evidence: `docs/screenshots/cml-pr-comment.png`.
   - Explanation: The CML workflow runs on pull requests, installs the project, optionally pulls DVC data if DVC is configured, runs the fast Hydra experiment when processed data is available, and posts a Markdown report back to the PR. This connects model evaluation to code review so reviewers can see model behavior changes alongside code changes.
+  - Data note: The CML workflow currently runs in lightweight CI mode because the processed dataset is not committed to Git. Full training in CML requires restoring `data/processed/processed_data.csv` through DVC or an artifact upload step.
 
 ## 3. Deployment on Google Cloud Platform (GCP)
 
