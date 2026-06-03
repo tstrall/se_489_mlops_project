@@ -26,6 +26,7 @@ def _base_row(**overrides: object) -> pd.DataFrame:
 # Column presence
 # ---------------------------------------------------------------------------
 
+
 def test_build_features_adds_expected_columns() -> None:
     df = pd.DataFrame(
         {
@@ -53,6 +54,7 @@ def test_build_features_adds_expected_columns() -> None:
 # ---------------------------------------------------------------------------
 # Correctness — normal inputs
 # ---------------------------------------------------------------------------
+
 
 def test_events_per_day_normal() -> None:
     result = build_features(_base_row(duration_seconds=86_400, num_events=4))
@@ -88,6 +90,7 @@ def test_is_high_priority_medium() -> None:
 # Edge cases — zero durations and contributors
 # ---------------------------------------------------------------------------
 
+
 def test_events_per_day_zero_duration_falls_back_to_num_events() -> None:
     """When duration is 0, events_per_day should equal num_events (not divide by zero)."""  # noqa: E501
     result = build_features(_base_row(duration_seconds=0, num_events=5))
@@ -113,6 +116,7 @@ def test_total_time_days_zero() -> None:
 # ---------------------------------------------------------------------------
 # Log-scaled columns
 # ---------------------------------------------------------------------------
+
 
 def test_log_columns_are_nonnegative() -> None:
     df = pd.DataFrame(
@@ -140,6 +144,7 @@ def test_log_total_time_zero_input_is_zero() -> None:
 # Immutability
 # ---------------------------------------------------------------------------
 
+
 def test_build_features_does_not_mutate_input() -> None:
     df = pd.DataFrame(
         {
@@ -159,6 +164,7 @@ def test_build_features_does_not_mutate_input() -> None:
 # ---------------------------------------------------------------------------
 # Multi-row consistency
 # ---------------------------------------------------------------------------
+
 
 def test_build_features_row_count_preserved() -> None:
     df = pd.DataFrame(

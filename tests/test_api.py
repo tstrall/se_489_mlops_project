@@ -8,6 +8,7 @@ from api.main import health, normalize_features
 # /health
 # ---------------------------------------------------------------------------
 
+
 def test_health_endpoint_payload() -> None:
     assert health()["status"] == "ok"
 
@@ -21,6 +22,7 @@ def test_health_returns_service_name() -> None:
 # ---------------------------------------------------------------------------
 # normalize_features — known categories
 # ---------------------------------------------------------------------------
+
 
 def test_normalize_features_one_hot_encodes_known_issue_type() -> None:
     normalized = normalize_features({"issue_type": "Ticket", "issue_priority": "High"})
@@ -54,6 +56,7 @@ def test_normalize_features_none_values_become_zero() -> None:
 # ---------------------------------------------------------------------------
 # normalize_features — unknown / missing categories
 # ---------------------------------------------------------------------------
+
 
 def test_normalize_features_unknown_issue_type_all_zeros() -> None:
     """An unrecognized issue_type should set all issue_type_* columns to 0."""
@@ -90,6 +93,7 @@ def test_normalize_features_missing_priority_all_zeros() -> None:
 # ---------------------------------------------------------------------------
 # normalize_features — output structure
 # ---------------------------------------------------------------------------
+
 
 def test_normalize_features_removes_raw_categorical_keys() -> None:
     """The raw string keys issue_type and issue_priority should not appear in output."""
