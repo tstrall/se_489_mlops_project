@@ -527,7 +527,7 @@ make docs
 |---|---|---|---|
 | Ted Strall | Project lead, repo structure, model training pipeline, documentation | Docker, Hydra, MLflow, profiling, monitoring, debugging writeups | FastAPI serving, Dockerized API evidence, deployment documentation |
 | Calvin Au | Dataset review, exploratory analysis support, project documentation review | Experiment comparison review, metric validation, README/PHASE2 review | UI/demo review and deployment evidence support |
-| Seshagiri Kalyana Venkatesh Adavi | Data preprocessing review, feature engineering discussion, model result validation | Monitoring/profiling review, debugging notes, reproducibility checks | Cloud deployment checklist and documentation review |
+| Seshagiri Kalyana Venkatesh Adavi | Data leakage fix, MLflow integration, `build_features.py` implementation, `predict_proba` bug fix, EDA notebook, baseline results | Rich logging (`logging_config.py`), cProfile training profiler, psutil resource monitor, Hydra experiment config groups, PHASE2.md debugging docs | Expanded test suite — `test_api.py`, `test_features.py`, `test_metrics.py` edge cases and coverage |
 | Julisa Delfin | Problem framing, motivation, presentation/report support, documentation review | Logging documentation review, operational evidence review | Demo narrative, screenshot organization, final README review |
 
 ### Project Milestones
@@ -556,6 +556,7 @@ make docs
 - [x] Scalene profiler added - `scripts/profile_with_scalene.py` with line-level CPU and memory report
 - [x] psutil resource monitor added - `scripts/monitor_training.py` tracks CPU/RAM during training runs
 - [x] Debugging documented - pdb/ipdb usage guide and two real debug scenarios in PHASE2.md
+- [x] Test suite expanded - edge cases added to `test_api.py`, `test_features.py`, and `test_metrics.py` covering zero inputs, unknown categories, log-scaled columns, and metric invariants (38 tests total)
 
 ## References
 

@@ -14,9 +14,9 @@ Phase 3 adds CI/CD automation, CML reporting, cloud deployment scaffolding, and 
 ## 1. Continuous Integration & Testing
 
 - [x] **1.1 Unit Testing with pytest**
-  - File/dir reference: `tests/`, especially `tests/test_model.py`, `tests/test_features.py`, `tests/test_metrics.py`, and `tests/test_api.py`.
-  - Screenshot evidence: `docs/screenshots/ci-green-run.png` or `docs/screenshots/local-pytest-run.png`.
-  - Explanation: The test suite covers the model object, deterministic feature engineering, evaluation metric helpers, and API request normalization. These tests protect the critical training and serving paths so a Phase 3 deployment does not silently ship broken preprocessing or prediction behavior.
+  - File/dir reference: `tests/test_model.py`, `tests/test_features.py`, `tests/test_metrics.py`, `tests/test_api.py`, `tests/test_data_pipeline.py`.
+  - Screenshot evidence: `docs/screenshots/ci-green-run.png`, `docs/screenshots/local-pytest-run.png`.
+  - Explanation: The test suite covers the model fit/predict/save-load cycle, deterministic feature engineering (including zero-duration and zero-contributor edge cases), evaluation metric invariants (perfect classifier, RMSE = sqrt(MSE)), the data processing pipeline end-to-end, and the FastAPI request normalization layer (unknown categories, missing fields, one-hot encoding correctness). 38 tests run in under 2 seconds and all pass on CI.
 
 - [x] **1.2 GitHub Actions CI Workflow**
   - File/dir reference: `.github/workflows/ci.yml`.
