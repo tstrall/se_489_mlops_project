@@ -32,7 +32,13 @@ http://localhost:8000
 
 ## Cloud Run Command
 
-Deploy the Phase 2 Docker image and configure the service command:
+The FastAPI service is deployed on Cloud Run at:
+
+```text
+https://helpevents-api-263032795187.us-central1.run.app
+```
+
+Deploy the Docker image with this service command:
 
 ```bash
 uvicorn api.main:app --host 0.0.0.0 --port 8000
@@ -48,31 +54,25 @@ HELPEVENTS_DATA_PATH=/app/data/processed/processed_data.csv
 ## API Request
 
 ```bash
+export HELPEVENTS_API_URL="https://helpevents-api-263032795187.us-central1.run.app"
+
 curl -X POST "$HELPEVENTS_API_URL/predict" \
   -H "Content-Type: application/json" \
-  -d '{
-    "features": {
-      "issue_contr_count": 1,
-      "issue_comments_count": 3,
-      "processing_steps": 4,
-      "num_events": 8,
-      "duration_seconds": 3600,
-      "issue_priority": "Medium",
-      "issue_type": "Ticket",
-      "events_per_day": 8,
-      "comments_per_contributor": 3,
-      "is_high_priority": 0,
-      "log_num_events": 2.197224577
-    }
-  }'
+  -d @request.json
 ```
 
 ## Hugging Face Streamlit UI
 
-The app lives at `app/streamlit_app.py`. In Hugging Face Spaces, set:
+The app lives at `app/streamlit_app.py` and is deployed at:
 
 ```text
-HELPEVENTS_API_URL=<Cloud Run URL>
+https://huggingface.co/spaces/tstrall/helpevents-sla
+```
+
+In Hugging Face Spaces, set:
+
+```text
+HELPEVENTS_API_URL=https://helpevents-api-263032795187.us-central1.run.app
 ```
 
 The GitHub workflow `.github/workflows/huggingface-space.yml` syncs the app to the Space when `HF_TOKEN` and `HF_SPACE` secrets are configured.
