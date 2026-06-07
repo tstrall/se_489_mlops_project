@@ -4,11 +4,9 @@ Predict SLA violations from event sequences
 
 ## Phase 3 Demo Recording
 
-> **TODO before final submission:** Embed or link the required 2-5 minute narrated/captioned end-to-end demo here.
->
-> Recording link: `TODO: paste Loom, YouTube, Hugging Face, or repo video link`
->
-> The recording should show the Hugging Face Streamlit app, a realistic support-ticket input, the SLA-risk prediction, and evidence that the request reached the deployed FastAPI backend on GCP Cloud Run or Cloud Functions.
+[Watch the HelpEvents SLA Predictor Phase 3 Demo](https://youtu.be/1WKZlyfCCTU)
+
+This narrated end-to-end demo shows the deployed Hugging Face Streamlit app, a realistic support-ticket input, the SLA-risk prediction, and evidence that the request reached the deployed FastAPI backend on GCP Cloud Run.
 
 ## Team Information
 
