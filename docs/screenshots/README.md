@@ -2,11 +2,6 @@
 
 Place Phase 3 evidence screenshots here before the final submission.
 
-Recommended filenames still needed before final submission:
-
-- `readme-demo-embed.png`
-- `gcp-cleanup.png`
-
 Current evidence filenames in use:
 
 - `docker-image.png`
@@ -24,3 +19,4 @@ Current evidence filenames in use:
 - `precommit-run.png`
 - `cml-pr-comment.png`
 - `gcp-training-job.png`
+- `gcp-cleanup.png`

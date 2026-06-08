@@ -77,16 +77,16 @@ Phase 3 adds CI/CD automation, CML reporting, cloud deployment evidence, and an 
 
 ## 5. End-to-End Demo Recording
 
-- [ ] **5.1 Recording in main README**
+- [x] **5.1 Recording in main README**
   - File/dir reference: `README.md`.
-  - Recording link/path for graders: `TODO: paste Loom/YouTube/repo video link`.
-  - Explanation: The final README must embed or link a 2-5 minute narrated or captioned walkthrough near the top. The recording should show the Hugging Face UI, a realistic ticket input, the prediction result, and preferably evidence that the request reached the Cloud Run/FastAPI backend.
+  - Recording link/path for graders: `https://www.youtube.com/watch?v=1WKZIyfGCTU`.
+  - Explanation: The README embeds a link to the 2-5 minute narrated walkthrough near the top. The recording shows the Hugging Face UI, a realistic ticket input, the prediction result, and evidence that the request reached the Cloud Run/FastAPI backend.
 
 ## 6. Documentation, Repository Updates & Cleanup
 
 - [x] **6.1 Comprehensive README**
   - File/dir reference: `README.md`.
-  - Screenshot evidence: Pending final demo screenshot: `docs/screenshots/readme-demo-embed.png`.
+  - Screenshot evidence: Demo recording link is documented directly in `README.md`.
   - Explanation: The README now includes a Phase 3 section with CI/CD, Docker, CML, Cloud Run, Hugging Face, and demo-recording guidance. It remains the main front door for reviewers and links to this evidence report.
 
 - [x] **6.2 PHASE3.md**
@@ -94,15 +94,15 @@ Phase 3 adds CI/CD automation, CML reporting, cloud deployment evidence, and an 
   - Screenshot evidence: this file rendered in GitHub after screenshots and URLs are added.
   - Explanation: This document is structured around the course template and includes repo paths, required screenshots, and concise explanations. Items that require live cloud execution remain unchecked until the team captures real evidence.
 
-- [ ] **6.3 GCP Resource Cleanup**
+- [x] **6.3 GCP Resource Cleanup**
   - File/dir reference: `docs/PHASE3_HANDOFF.md`.
   - Screenshot evidence: `docs/screenshots/gcp-cleanup.png`.
-  - Explanation: After deployment screenshots and the demo recording are captured, delete or stop billable GCP resources such as Cloud Run services, Cloud Functions, Vertex/Compute jobs, buckets, and registry images that are no longer needed. Add a dated cleanup screenshot here so graders can see the team avoided lingering cloud costs.
+  - Explanation: After deployment screenshots and the demo recording were captured, billable GCP resources were stopped or deleted. The cleanup screenshot shows the Cloud Run services page after cleanup so graders can see the team avoided lingering cloud costs.
 
 ## Final Submission Checklist
 
 - [x] Add current CI, CML, GCP, Docker, and Hugging Face screenshots under `docs/screenshots/`.
 - [x] Paste live Cloud Run and Hugging Face URLs above.
-- [ ] Embed or link the 2-5 minute demo recording near the top of `README.md`.
+- [x] Embed or link the 2-5 minute demo recording near the top of `README.md`.
 - [x] Run GitHub Actions after secrets are configured and capture green workflow evidence.
-- [ ] Capture GCP cleanup evidence after the demo is recorded.
+- [x] Capture GCP cleanup evidence after the demo is recorded.
